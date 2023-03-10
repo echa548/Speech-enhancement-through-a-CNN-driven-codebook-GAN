@@ -8,6 +8,8 @@ from scipy.signal import butter, lfilter
 import matplotlib.pyplot as plt
 
 samplerate, data = wavfile.read("MY_Experimenting_Folder/Medium48k.wav")
+print(type(data), type(samplerate))
+print(data.shape, samplerate)
 
 Fs1 = samplerate
 Fs2 = 11025
