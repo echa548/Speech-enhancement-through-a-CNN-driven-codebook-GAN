@@ -61,7 +61,7 @@ plt.colorbar(label='Decibels')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 plt.savefig('Spectrogram_Plots\\Magnitude_Plot_Left.png')
-
+plt.close()
 
 f, t, Rxx = signal.spectrogram(x = Down_Sampled_data_right,fs = Down_Sampled_rate,window = 'hann',nperseg = 512,noverlap = 384,nfft =  512,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
 plt.pcolormesh(t, f, 10 * np.log10(Rxx), cmap ='magma')
@@ -69,14 +69,14 @@ plt.colorbar(label='Decibels')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 plt.savefig('Spectrogram_Plots\\Magnitude_Plot_Right.png')
-
+plt.close()
 Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Down_Sampled_data_left, fs = Down_Sampled_rate, window = 'hann', nperseg = 512,noverlap = 384,nfft = 512,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
 plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
 plt.colorbar(label='Phase')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 plt.savefig('Spectrogram_Plots\\Phase_Plot_Left.png')
-
+plt.close()
 
 Phase, t_phase, Rxx_Phase = signal.spectrogram(x = Down_Sampled_data_right,fs = Down_Sampled_rate, window = 'hann', nperseg = 512, noverlap = 384, nfft = 512,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
 plt.pcolormesh(t_phase, Phase, Rxx_Phase, cmap ='magma')
@@ -84,7 +84,7 @@ plt.colorbar(label='Phase')
 plt.ylabel('Frequency [Hz]')
 plt.xlabel('Time [sec]')
 plt.savefig('Spectrogram_Plots\\Phase_Plot_Right.png')
-
+plt.close()
 
 
 
