@@ -4,12 +4,14 @@ import numpy as np
 from scipy import signal
 import scipy.signal as sps
 from scipy.signal import butter, lfilter
-from pydub import AudioSegment, effects
 import matplotlib.pyplot as plt
-
+from pydub import AudioSegment, effects
+AudioSegment.converter = "C:\\ffmpeg\\ffmpeg\\bin\\ffmpeg.exe"
+AudioSegment.ffmpeg = "C:\\ffmpeg\\ffmpeg\\bin\\ffmpeg.exe"
+AudioSegment.ffprobe ="C:\\ffmpeg\\ffmpeg\\bin\\ffprobe.exe"
 samplerate, data = wavfile.read("C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/Medium48k.wav")
-print(type(data), type(samplerate))
-print(data.shape, samplerate)
+#print(type(data), type(samplerate))
+#print(data.shape, samplerate)
 
 Fs1 = samplerate
 Fs2 = 16000
@@ -52,9 +54,9 @@ Left_channel_right_channel=Left_channel_right_channel.transpose()
 #normalized_audio = effects.normalize(Left_channel_right_channel)
 #Only uncomment if a file needs to be downsampled
 wavfile.write('C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav', Fs2, Left_channel_right_channel)
-rawsound = AudioSegment.from_file("C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav", "wav")  
+rawsound = AudioSegment.from_file('C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav', 'wav')  
 normalizedsound = effects.normalize(rawsound)  
-normalizedsound.export("C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav", format="wav")
+normalizedsound.export('C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav', format='wav')
 #Change directory to downsampled file of interest
 Down_Sampled_rate, Downsampled_data = wavfile.read('C:/Users/Admin/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/MY_Experimenting_Folder/abc1.wav')
 Downsampled_data = Downsampled_data
