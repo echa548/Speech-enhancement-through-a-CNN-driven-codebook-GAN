@@ -53,10 +53,10 @@ for i in range (0,len(directories)):
    if Fs2==Fs1:
      data = data/(2**(32-1))
      #signal inspection
-     #sf.write("MY_Experimenting_Folder\\Processed_audio\\"+ directories[i], data, samplerate, 'PCM_16')
-     #rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-     #normalizedsound = effects.normalize(rawsound)  
-     #normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
+     sf.write("MY_Experimenting_Folder\\Processed_audio\\"+ directories[i], data, samplerate, 'PCM_16')
+     rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
+     normalizedsound = effects.normalize(rawsound)  
+     normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
 
      f, t, Lxx = signal.spectrogram(x = data, fs = samplerate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
      plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
@@ -81,25 +81,25 @@ for i in range (0,len(directories)):
        New_sample_amount = math.ceil(Fs2*total_time)
        Single_Channel = np.zeros(New_sample_amount)
        data = data/(2**(32-1))
-       print(data)
        Original_signal = data
        Anti_Aliased_signal = np.array(butter_lowpass_filter(Original_signal,Max_Signal_Frequency,Fs1))
        Down_sampled_signal = np.array(sps.resample(Anti_Aliased_signal,New_sample_amount))
        Single_Channel = Down_sampled_signal
        Transformed_single_channel=Single_Channel.transpose()
-       #sf.write('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Transformed_single_channel, Fs2, 'PCM_16')
-       #rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-       #normalizedsound = effects.normalize(rawsound)  
-       #normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
-       #Down_Sampled_rate, Downsampled_data = wavfile.read('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
-       f, t, Lxx = signal.spectrogram(x = Transformed_single_channel, fs = Fs2, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+       sf.write('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Transformed_single_channel, Fs2, 'PCM_16')
+       rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
+       normalizedsound = effects.normalize(rawsound)  
+       normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
+       Down_Sampled_rate, Downsampled_data = wavfile.read('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
+
+       f, t, Lxx = signal.spectrogram(x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
        plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
        plt.colorbar(label='Decibels')
        plt.ylabel('Frequency [Hz]')
        plt.xlabel('Time [sec]')
        plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Mono.png')
        plt.close()
-       Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Transformed_single_channel, fs = Fs2, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
+       Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
        plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
        plt.colorbar(label='Phase')
        plt.ylabel('Frequency [Hz]')
@@ -127,10 +127,10 @@ for i in range (0,len(directories)):
         Right_channel_Stereo = Down_sampled_signal
       Left_channel_right_channel = np.vstack((Left_channel_Stereo, Right_channel_Stereo))
       Left_channel_right_channel=Left_channel_right_channel.transpose()
-      #sf.write('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Left_channel_right_channel, Fs2, 'PCM_16')
-      #rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-      #normalizedsound = effects.normalize(rawsound)  
-      #normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
+      sf.write('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Left_channel_right_channel, Fs2, 'PCM_16')
+      rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
+      normalizedsound = effects.normalize(rawsound)  
+      normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
       Down_Sampled_rate, Downsampled_data = wavfile.read('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
       Downsampled_data = Downsampled_data
       Down_Sampled_data_left = Left_channel_right_channel[:,0]
