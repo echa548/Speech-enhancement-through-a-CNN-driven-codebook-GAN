@@ -45,14 +45,15 @@ seed = 21
 #Greens = np.zeros()
 for i in range (0,len(img_files)):
  #To be fixed, FUcking tuples for images.
+ #RGB values (y, x, color)
  img=mpimg.imread('Spectrogram_Plots/Mag/'+ img_files[i])
- Reds = img[:,0,0]
- Blues= img[0,:,0]
- Greens= img[0,0,:] 
+ Reds = img[:,:,1]
+ Blues= img[:,:,2]
+ Greens= img[:,:,3] 
 #Red_mean, Red_variance, Rcomponent_probs = em(Reds, N_clusters, iterations,seed) 
 #Blue_mean, Blue_variance, Bcomponent_probs  = em(Blues,N_clusters, iterations,seed)
 #Green_mean, Green_variance, Gcomponent_probs = em(Greens, N_clusters, iterations,seed)
-print(len(Reds))
+print(np.asarray(Reds))
 #print(Red_mean)
 #print(Red_variance)
 #print(Rcomponent_probs)
