@@ -23,7 +23,7 @@ def em(data, components, iterations, RNGseed):
    #for component in range (components):
     #responsibilities[i,component] = components_probs[c] *\
     #tfp.distributions.distributions.Normal(loc= mean[component],scale = variance[component].prob(data[i]))
-  responsibilities=tfp.distributions.Normal(loc=mean, scale = variance).prob(data.reshape(-1,1)).numpy()
+  responsibilities=tfp.distributions.Normal(loc=mean, scale = variance).prob(data.reshape(-1,1)).numpy()*components_probs
   responsibilities /= np.linalg.norm(responsibilities, axis=1, ord=1, keepdims=True)
   components_responsibilities = np.sum(responsibilities, axis=0)
  
@@ -33,6 +33,10 @@ def em(data, components, iterations, RNGseed):
    variance[component] = np.sqrt(np.sum(responsibilities[:,component]*(data-mean[component])**2))/components_responsibilities[component]
  return mean, variance, components_probs
 
+
+
+
+
 img_files = os.listdir('Spectrogram_Plots/Mag')
 n=len(img_files)
 #True clusters
@@ -40,20 +44,40 @@ N_clusters = 18
 iterations = 100
 #RNG seed
 seed = 21
-#Reds = np.zeros()
+
+img=mpimg.imread('Spectrogram_Plots/Mag/1f32269b-82eb-4cf8-a911-cf6b2f73a4bf.wavMagnitude_Plot_Mono.png')
+Reds = img[:,:,1]
+Reds = np.asarray(Reds)
+Reds_shape = np.shape(Reds)
+shape = (Reds_shape[0],Reds_shape[1],560)
+#Tensor representation of each image with only Red channel
+Red_data_proto = np.zeros(shape)
+print(np.shape(Red_data_proto))
+
+
 #Blues = np.zeros()
 #Greens = np.zeros()
+
+
+#Scan through all the files, read the img data.
 for i in range (0,len(img_files)):
- #To be fixed, FUcking tuples for images.
+ 
  #RGB values (y, x, color)
  img=mpimg.imread('Spectrogram_Plots/Mag/'+ img_files[i])
  Reds = img[:,:,1]
- Blues= img[:,:,2]
- Greens= img[:,:,3] 
+ Reds = np.asarray(Reds)
+ Red_data_proto[:,:,i] = Reds[:,:]
+ #disable for simplicity 
+ #Blues= img[:,:,2]
+ #Blues = np.asarray(Blues)
+ #Greens= img[:,:,3]
+ #Greens=  np.asarray(Greens)
+
+
+
 #Red_mean, Red_variance, Rcomponent_probs = em(Reds, N_clusters, iterations,seed) 
 #Blue_mean, Blue_variance, Bcomponent_probs  = em(Blues,N_clusters, iterations,seed)
 #Green_mean, Green_variance, Gcomponent_probs = em(Greens, N_clusters, iterations,seed)
-print(np.asarray(Reds))
 #print(Red_mean)
 #print(Red_variance)
 #print(Rcomponent_probs)
