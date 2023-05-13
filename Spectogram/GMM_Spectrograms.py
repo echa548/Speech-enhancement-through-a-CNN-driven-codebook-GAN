@@ -34,7 +34,8 @@ def em(data, components, iterations, RNGseed):
  return mean, variance, components_probs
 
 
-
+def reduce_dimensionality():
+ pass
 
 
 img_files = os.listdir('Spectrogram_Plots/Mag')
@@ -73,6 +74,7 @@ for i in range (0,len(img_files)):
  #Greens= img[:,:,3]
  #Greens=  np.asarray(Greens)
 
+#To be done: PCA/SVD
 
 
 #Red_mean, Red_variance, Rcomponent_probs = em(Reds, N_clusters, iterations,seed) 
