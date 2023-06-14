@@ -20,10 +20,29 @@ os.chdir('C:/Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700')
 #print("Current Working Directory " , os.getcwd())
 
 #data gathering and spectrogram generation
-
-
 #external sources, only run once. Change number of Generate_data to randomize file names and write to a different directory. Change data directory as required.
+
 Generate_data = 0
+Generate_normalised_downsampled_speech = 1
+Generate_normalised_downsampled_noise = 0
+
+if Generate_normalised_downsampled_speech ==1:
+ directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech')
+if Generate_normalised_downsampled_noise ==1:
+ directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/noise')  
+
+def butter_lowpass(cutoff, fs, order=5):
+    return butter(order, cutoff, fs=fs, btype='low', analog=False)
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def Generate_Mono_Spectrogram (wow):
+
+  pass
+
 if Generate_data == 1:
   for root, dirs, files in os.walk("C:\\Users\\Timothy\Desktop\\MY_Experimenting_Folder\\Test_Audio", topdown=True):
    for name in files:
@@ -36,31 +55,43 @@ if Generate_data == 1:
        sf.write('C:\\Users\\Timothy\\Desktop\\Random_data\\'+ str(uuid.uuid4())+'.wav', data, samplerate, 'PCM_16')
       
 
-def butter_lowpass(cutoff, fs, order=5):
-    return butter(order, cutoff, fs=fs, btype='low', analog=False)
-
-def butter_lowpass_filter(data, cutoff, fs, order=5):
-    b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-
-directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech')
 #print(directories)
 for i in range (0,len(directories)):
-   samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i])
-   Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i], 'rb')
+   
+   if Generate_normalised_downsampled_speech ==1:
+    samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i])
+    print(samplerate)
+    Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i], 'rb')
+   if Generate_normalised_downsampled_noise == 1:
+    samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i])
+    Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i], 'rb')
+
+
    Fs1 = samplerate
    Fs2 = 16000
    bit_depth = Bit_Check.getsampwidth() * 8
    
+  #If already at 16Khz, just let it pass.
    if Fs2==Fs1:
      data = data/(2**(bit_depth-1))
      #signal inspection
-     sf.write("MY_Experimenting_Folder/Processed_audio/"+ directories[i], data, samplerate, 'PCM_16')
-     rawsound = AudioSegment.from_wav('MY_Experimenting_Folder/Processed_audio/'+directories[i])  
-     normalizedsound = effects.normalize(rawsound)  
-     normalizedsound.export('MY_Experimenting_Folder/Processed_audio/'+directories[i], format = 'wav')
+     if Generate_normalised_downsampled_speech ==1:
+      sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[i], data, samplerate, 'PCM_16')
+     if Generate_normalised_downsampled_noise == 1:
+      sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[i], data, samplerate, 'PCM_16')
+       
+     #TO be changed to local SNR instead of global RMS for a more accurate estimation.
+     #This means adjusting the noise level to the local samples signal.
+     #will need to detect if power of speech signal represents silence or not.
 
+
+
+    #rawsound = AudioSegment.from_wav('MY_Experimenting_Folder/Processed_audio/'+directories[i])  
+    #normalizedsound = effects.normalize(rawsound)  
+    #normalizedsound.export('MY_Experimenting_Folder/Processed_audio/'+directories[i], format = 'wav')
+
+#To do: Implement spectrogram function, sort out local , Ytb premium sub as well change to student
+#Spectrogram generation (Mono) Uncomment when needed
     #  f, t, Lxx = signal.spectrogram(x = data, fs = samplerate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
     #  plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
     #  plt.colorbar(label='Decibels')
@@ -90,7 +121,10 @@ for i in range (0,len(directories)):
        Single_Channel = Down_sampled_signal
        Transformed_single_channel=Single_Channel.transpose()
        #wavfile.write('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Fs2, Transformed_single_channel)
-       sf.write('Spectogram/MY_Experimenting_Folder/Processed_audio/'+directories[i], Transformed_single_channel, Fs2, 'PCM_16')
+       if Generate_normalised_downsampled_speech == 1:
+        sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
+       if Generate_normalised_downsampled_noise == 1:
+        sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
       #  rawsound = AudioSegment.from_wav('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
       #  normalizedsound = effects.normalize(rawsound)  
       #  normalizedsound.export('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
