@@ -23,9 +23,9 @@ os.chdir('C:/Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700')
 #external sources, only run once. Change number of Generate_data to randomize file names and write to a different directory. Change data directory as required.
 
 Generate_data = 0
-Generate_normalised_downsampled_speech = 1
+Generate_normalised_downsampled_speech = 0
 Generate_normalised_downsampled_noise = 0
-
+Generate_spectrogram = 0
 if Generate_normalised_downsampled_speech ==1:
  directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech')
 if Generate_normalised_downsampled_noise ==1:
@@ -40,7 +40,6 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     return y
 
 def Generate_Mono_Spectrogram (wow):
-
   pass
 
 if Generate_data == 1:
@@ -128,22 +127,22 @@ for i in range (0,len(directories)):
       #  rawsound = AudioSegment.from_wav('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
       #  normalizedsound = effects.normalize(rawsound)  
       #  normalizedsound.export('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
-       #Down_Sampled_rate, Downsampled_data = wavfile.read('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
-       
-      #  f, t, Lxx = signal.spectrogram(x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
-      #  plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
-      #  plt.colorbar(label='Decibels')
-      #  plt.ylabel('Frequency [Hz]')
-      #  plt.xlabel('Time [sec]')
-      #  plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Mono.png')
-      #  plt.close()
-      #  Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
-      #  plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
-      #  plt.colorbar(label='Phase')
-      #  plt.ylabel('Frequency [Hz]')
-      #  plt.xlabel('Time [sec]')
-      #  plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Mono.png')
-      #  plt.close()
+       if Generate_spectrogram ==1 :
+         Down_Sampled_rate, Downsampled_data = wavfile.read('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
+         f, t, Lxx = signal.spectrogram(x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+         plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
+         plt.colorbar(label='Decibels')
+         plt.ylabel('Frequency [Hz]')
+         plt.xlabel('Time [sec]')
+         plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Mono.png')
+         plt.close()
+         Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
+         plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
+         plt.colorbar(label='Phase')
+         plt.ylabel('Frequency [Hz]')
+         plt.xlabel('Time [sec]')
+         plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Mono.png')
+         plt.close()
      else:
       N = len(data)
       total_time = (N-1)/Fs1
@@ -180,7 +179,7 @@ for i in range (0,len(directories)):
       plt.xlabel('Time [sec]')
       plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Left.png')
       plt.close()
-      f, t, Rxx = signal.spectrogram(x = Down_Sampled_data_right,fs = Fs2, window = 'hann',nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+      f, t, Rxx = signal.spectrogram(x = Down_Sampled_data_right,fs = Fs2, window = 'hann',nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
       plt.pcolormesh(t, f, 10 * np.log10(Rxx), cmap ='Greys')
       plt.colorbar(label='Decibels')
       plt.ylabel('Frequency [Hz]')
