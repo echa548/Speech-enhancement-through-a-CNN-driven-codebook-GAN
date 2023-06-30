@@ -181,12 +181,9 @@ def em_sieved(
 
 def Hann_window_a_signal(Windowed_data):
  Hann_window = sps.windows.hann(len(Windowed_data))
- Hann_window_fft = np.fft.fft(Hann_window,1024)
- #print(Hann_window_fft)
- Windowed_data_fft = np.fft.fft(Windowed_data,1024)
- Multiplication_in_Freq = Hann_window_fft*Windowed_data_fft
- #print(np.shape(Multiplication_in_Freq))
- return Multiplication_in_Freq
+ Hann_Windowed_data = Hann_window*Windowed_data
+ Windowed_data_fft = np.fft.fft(Hann_Windowed_data,1024)
+ return Windowed_data_fft
 def trainGMMspeech():
  
  pass
@@ -201,19 +198,35 @@ def trainGMMnoise(Components,iterations,seed):
    Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
-   Rectangular_windowed_signal = data[0:1023]
-   FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
-   Hann_window = sps.windows.hann(len(FFT_of_windowed_signal))
-   PSD_window_scaling = np.sum(Hann_window**2)
-   #print(PSD_window_scaling)
-   PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
-   
+   #Rectangular_windowed_signal = data[0:1023]
+   Overlaps = math.floor(len(data)/256)
+   PSD_of_overlaps = np.zeros((N_fft,Overlaps))
+   Mean_PSD_val = np.zeros(N_fft)
+   for No_of_overlaps in range (0,Overlaps):
+     Rectangular_windowed_signal = data[0+255*No_of_overlaps:511+255*No_of_overlaps]
+     padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
+     #print(padded_signal)
+     FFT_of_windowed_signal = Hann_window_a_signal(padded_signal)
+     Hann_window = sps.windows.hann(len(FFT_of_windowed_signal))
+     PSD_window_scaling = np.sum(Hann_window**2)
+     #print(PSD_window_scaling)
+     PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
+     #print(PSD_of_windowed_signal)
+     PSD_of_overlaps[:,No_of_overlaps] = PSD_of_windowed_signal
+     #print(PSD_of_overlaps[:,No_of_overlaps])
+
+
+   for frequency_bin in range (0,N_fft):
+       Mean_PSD_val[frequency_bin] = np.mean(PSD_of_overlaps[frequency_bin,:])
+       #print(Mean_PSD_val[frequency_bin])
+        
    for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
-    pre_codebook_array[Frequency_bin,No_of_data] = PSD_of_windowed_signal[Frequency_bin]
-    #print(PSD_of_windowed_signal(Frequency_bin))
+      pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
+      #print(PSD_of_windowed_signal[Frequency_bin])
+ print(pre_codebook_array)
  for Frequency_bin in range (0,N_fft):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
-    Transpose = 1000*np.transpose(Frequency_bin_accross_all_data)
+    Transpose = np.transpose(Frequency_bin_accross_all_data)
     #print(np.shape(Transpose))
     n_iterations_pre_sieving = 5
     n_candidates = 100
