@@ -182,7 +182,8 @@ def em_sieved(
 def Hann_window_a_signal(Windowed_data):
  Hann_window = sps.windows.hann(len(Windowed_data))
  Hann_Windowed_data = Hann_window*Windowed_data
- Windowed_data_fft = np.fft.fft(Hann_Windowed_data,1024)
+ padded_signal = np.pad(Hann_Windowed_data,(0,512), 'constant')
+ Windowed_data_fft = np.fft.fft(padded_signal,1024)
  return Windowed_data_fft
 def trainGMMspeech():
  
@@ -199,15 +200,15 @@ def trainGMMnoise(Components,iterations,seed):
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
    #Rectangular_windowed_signal = data[0:1023]
-   Overlaps = math.floor(len(data)/256)
+   Overlaps = math.floor(len(data)/128)
    PSD_of_overlaps = np.zeros((N_fft,Overlaps))
    Mean_PSD_val = np.zeros(N_fft)
-   for No_of_overlaps in range (0,Overlaps):
-     Rectangular_windowed_signal = data[0+255*No_of_overlaps:511+255*No_of_overlaps]
-     padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
+   for No_of_overlaps in range (0,Overlaps-5):
+     Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
+     #padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
      #print(padded_signal)
-     FFT_of_windowed_signal = Hann_window_a_signal(padded_signal)
-     Hann_window = sps.windows.hann(len(FFT_of_windowed_signal))
+     FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
+     Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
      PSD_window_scaling = np.sum(Hann_window**2)
      #print(PSD_window_scaling)
      PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
@@ -249,10 +250,61 @@ N_clusters = 18
 iterations = 100
 #RNG seed
 seed = 21
-Noise_codebook = trainGMMnoise(N_clusters,iterations,seed)
-myFile = open('list.txt', 'r+')
-np.savetxt(myFile, Noise_codebook)
-myFile.close()
+#Noise_codebook = trainGMMnoise(N_clusters,iterations,seed)
+#myFile = open('list.txt', 'r+')
+#np.savetxt(myFile, Noise_codebook)
+#myFile.close()
+text_file = open("list.txt", "r")
+lines = text_file.readlines()
+text_file.close()
+Noise_codebook2 = np.zeros((1024,N_clusters))
+
+#to do: train speech :/
+
+for frequency_bin in range (0,len(lines)):
+ string_list = lines[frequency_bin].split()
+ for component in range (0, len(string_list)):
+  Noise_codebook2[frequency_bin,component] = float(string_list[component])
+  
+  #print(wow)
+
+mixture_PSD = 1 #to do: read noisy mixture
+N_fft = 1024
+directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_noise')
+for No_of_data in range (0,1):
+   samplerate, data = wavfile.read("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data])
+   Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data], 'rb')
+   bit_depth = Bit_Check.getsampwidth() * 8
+   data = data/(2**(bit_depth-1))
+   #Rectangular_windowed_signal = data[0:1023]
+   Overlaps = math.floor(len(data)/128)
+   PSD_of_overlaps = np.zeros((N_fft,Overlaps))
+   Mean_PSD_val = np.zeros(N_fft)
+   for No_of_overlaps in range (0,Overlaps-5):
+     Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
+     #padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
+     #print(padded_signal)
+     FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
+     Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
+     PSD_window_scaling = np.sum(Hann_window**2)
+     #print(PSD_window_scaling)
+     PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
+     inverse = np.linalg.pinv(Noise_codebook2)
+     coeffs = inverse*PSD_of_windowed_signal
+     #print(np.shape(coeffs.transpose()))
+     print(coeffs)
+    #  for frequency_bin in range (0,N_fft):
+    #    inverse = np.linalg.pinv(Noise_codebook2[frequency_bin,:])
+    #    coeffs = inverse*mixture_PSD
+    #    print(coeffs)
+     
+
+#print(np.shape(Noise_codebook2))
+#wow = lines[0].split()
+#print(len(wow))
+#print (lines[0])
+
+#
 
 #Tensor representation of each image with only Red channel
 
