@@ -13,23 +13,22 @@ import os
 from pydub import AudioSegment, effects
 import wave
 #Dependencies on ffmpeg, install if u dont have. Add to PATH (Environment variables)
-#AudioSegment.converter = "C:Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/FFMPEG/ffmpeg.exe"
-#AudioSegment.ffmpeg = "C:Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/FFMPEG/ffmpeg.exe"
-#AudioSegment.ffprobe ="C:Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram/FFMPEG/ffprobe.exe"
 os.chdir('C:/Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700')
-#print("Current Working Directory " , os.getcwd())
 
-#data gathering and spectrogram generation
-#external sources, only run once. Change number of Generate_data to randomize file names and write to a different directory. Change data directory as required.
 
 Generate_data = 0
-Generate_normalised_downsampled_speech = 0
+Generate_normalised_downsampled_speech = 1
 Generate_normalised_downsampled_noise = 0
 Generate_spectrogram = 0
 if Generate_normalised_downsampled_speech ==1:
- directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech')
+ directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus')
+ path ='Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus'
 if Generate_normalised_downsampled_noise ==1:
- directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/noise')  
+ directories = os.listdir('Model/Convert_audio_to_spectrogram/audio/noise/noise')
+ path ='Model/Convert_audio_to_spectrogram/audio/noise/noise' 
+
+
+
 
 def butter_lowpass(cutoff, fs, order=5):
     return butter(order, cutoff, fs=fs, btype='low', analog=False)
@@ -39,34 +38,55 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
-def Generate_Mono_Spectrogram (wow):
-  pass
-
-if Generate_data == 1:
-  for root, dirs, files in os.walk("C:\\Users\\Timothy\Desktop\\MY_Experimenting_Folder\\Test_Audio", topdown=True):
-   for name in files:
-      if (os.path.join(root, name).endswith('.wav')):
-       samplerate, data = wavfile.read(os.path.join(root, name))
-       sf.write('C:\\Users\\Timothy\\Desktop\\Random_data\\'+ str(uuid.uuid4())+'.wav', data, samplerate, 'PCM_16')
-   for name in dirs:
-      if (os.path.join(root, name).endswith('.wav')):
-       samplerate, data = wavfile.read(os.path.join(root, name))
-       sf.write('C:\\Users\\Timothy\\Desktop\\Random_data\\'+ str(uuid.uuid4())+'.wav', data, samplerate, 'PCM_16')
-      
-
-#print(directories)
-for i in range (0,len(directories)):
-   
-   if Generate_normalised_downsampled_speech ==1:
-    samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i])
-    print(samplerate)
-    Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i], 'rb')
-   if Generate_normalised_downsampled_noise == 1:
-    samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i])
-    Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i], 'rb')
+def Generate_Mono_Mag_Phase_Spectrogram (data,fs,subdirectory,filename):
+     f, t, Lxx = signal.spectrogram(x = data, fs = fs, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+     plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
+     plt.colorbar(label='Decibels')
+     plt.ylabel('Frequency [Hz]')
+     plt.xlabel('Time [sec]')
+     plt.savefig('Spectrogram_Plots/Mag/'+str(subdirectory)+'/'+str(filename)+'/'+'Magnitude_Plot_Mono.png')
+     plt.close()
+     Phase, t_phase, Lxx_Phase = signal.spectrogram( x = data, fs = samplerate, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
+     plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
+     plt.colorbar(label='Phase')
+     plt.ylabel('Frequency [Hz]')
+     plt.xlabel('Time [sec]')
+     plt.savefig('Spectrogram_Plots/Phase/'+str(subdirectory)+'/'+str(filename)+'/'+'Phase_Plot_Mono.png')
+     plt.close()
 
 
-   Fs1 = samplerate
+def Generate_Stereo_Spectrogram(data_left,data_right,fs,subdirectory,filename):
+ f, t, Lxx = signal.spectrogram(x = data_left, fs = fs, window = 'hann',nperseg = 512,noverlap = 384,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+ plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
+ plt.colorbar(label='Decibels')
+ plt.ylabel('Frequency [Hz]')
+ plt.xlabel('Time [sec]')
+ plt.savefig('Spectrogram_Plots/Mag/'+str(subdirectory)+'/'+str(filename)+'/'+'Magnitude_Plot_Left.png')
+ plt.close()
+ f, t, Rxx = signal.spectrogram(x = data_right,fs = fs, window = 'hann',nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
+ plt.pcolormesh(t, f, 10 * np.log10(Rxx), cmap ='Greys')
+ plt.colorbar(label='Decibels')
+ plt.ylabel('Frequency [Hz]')
+ plt.xlabel('Time [sec]')
+ plt.savefig('Spectrogram_Plots/Mag/'+str(subdirectory)+'/'+str(filename)+'/'+'Magnitude_Plot_Right.png')
+ Phase, t_phase, Lxx_Phase = signal.spectrogram( x = data_left, fs = fs, window = 'hann', nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
+ plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
+ plt.colorbar(label='Phase')
+ plt.ylabel('Frequency [Hz]')
+ plt.xlabel('Time [sec]')
+ plt.savefig('Spectrogram_Plots/Phase/'+str(subdirectory)+'/'+str(filename)+'/'+ 'Phase_Plot_Left.png')
+ plt.close()
+ Phase, t_phase, Rxx_Phase = signal.spectrogram(x = data_right,fs = fs, window = 'hann', nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
+ plt.pcolormesh(t_phase, Phase, Rxx_Phase, cmap ='magma')
+ plt.colorbar(label='Phase')
+ plt.ylabel('Frequency [Hz]')
+ plt.xlabel('Time [sec]')
+ plt.savefig('Spectrogram_Plots/Phase/'+str(subdirectory)+'/'+str(filename)+'/' + 'Phase_Plot_Right.png')
+ plt.close()
+
+
+def downsample_and_write_to_folder(data,fs,bit_depth,directory,sub_directory,file_name):
+   Fs1 = fs
    Fs2 = 16000
    bit_depth = Bit_Check.getsampwidth() * 8
    
@@ -75,36 +95,10 @@ for i in range (0,len(directories)):
      data = data/(2**(bit_depth-1))
      #signal inspection
      if Generate_normalised_downsampled_speech ==1:
-      sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[i], data, samplerate, 'PCM_16')
-     if Generate_normalised_downsampled_noise == 1:
-      sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[i], data, samplerate, 'PCM_16')
-       
-     #TO be changed to local SNR instead of global RMS for a more accurate estimation.
-     #This means adjusting the noise level to the local samples signal.
-     #will need to detect if power of speech signal represents silence or not.
-
-
-
-    #rawsound = AudioSegment.from_wav('MY_Experimenting_Folder/Processed_audio/'+directories[i])  
-    #normalizedsound = effects.normalize(rawsound)  
-    #normalizedsound.export('MY_Experimenting_Folder/Processed_audio/'+directories[i], format = 'wav')
-
-#To do: Implement spectrogram function, sort out local , Ytb premium sub as well change to student
-#Spectrogram generation (Mono) Uncomment when needed
-    #  f, t, Lxx = signal.spectrogram(x = data, fs = samplerate, window = 'hann',nperseg = 640,noverlap = 480,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
-    #  plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
-    #  plt.colorbar(label='Decibels')
-    #  plt.ylabel('Frequency [Hz]')
-    #  plt.xlabel('Time [sec]')
-    #  plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Mono.png')
-    #  plt.close()
-    #  Phase, t_phase, Lxx_Phase = signal.spectrogram( x = data, fs = samplerate, window = 'hann', nperseg = 640,noverlap = 480,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
-    #  plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
-    #  plt.colorbar(label='Phase')
-    #  plt.ylabel('Frequency [Hz]')
-    #  plt.xlabel('Time [sec]')
-    #  plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Mono.png')
-    #  plt.close()
+      sf.write('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), data, samplerate, 'PCM_16')
+     #Generate_Mono_Mag_Phase_Spectrogram(data,Fs2,sub_directory,file_name)
+     if Generate_normalised_downsampled_noise == 1: #change to demand file structure
+      sf.write('Model/Convert_audio_to_spectrogram/audio/noise/noise/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), data, samplerate, 'PCM_16')
    else:
      Mono_Stereo = np.shape(data)
      if len(Mono_Stereo)==1:
@@ -121,28 +115,13 @@ for i in range (0,len(directories)):
        Transformed_single_channel=Single_Channel.transpose()
        #wavfile.write('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i], Fs2, Transformed_single_channel)
        if Generate_normalised_downsampled_speech == 1:
-        sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
+        sf.write('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), Down_sampled_signal, Fs2, 'PCM_16')
+        Down_Sampled_rate, Downsampled_data = wavfile.read('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name))
+        #Generate_Mono_Mag_Phase_Spectrogram(Downsampled_data,Down_Sampled_rate,sub_directory,file_name)
        if Generate_normalised_downsampled_noise == 1:
-        sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
-      #  rawsound = AudioSegment.from_wav('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-      #  normalizedsound = effects.normalize(rawsound)  
-      #  normalizedsound.export('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
-       if Generate_spectrogram ==1 :
-         Down_Sampled_rate, Downsampled_data = wavfile.read('Spectogram\\MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
-         f, t, Lxx = signal.spectrogram(x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann',nperseg = 512,noverlap = 384,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
-         plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
-         plt.colorbar(label='Decibels')
-         plt.ylabel('Frequency [Hz]')
-         plt.xlabel('Time [sec]')
-         plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Mono.png')
-         plt.close()
-         Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Downsampled_data, fs = Down_Sampled_rate, window = 'hann', nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
-         plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
-         plt.colorbar(label='Phase')
-         plt.ylabel('Frequency [Hz]')
-         plt.xlabel('Time [sec]')
-         plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Mono.png')
-         plt.close()
+        sf.write('Model/Convert_audio_to_spectrogram/audio/noise/noise'+'/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), data, samplerate, 'PCM_16')
+        Down_Sampled_rate, Downsampled_data = wavfile.read('Model/Convert_audio_to_spectrogram/audio/noise/noise'+'/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name))
+       # Generate_Mono_Mag_Phase_Spectrogram(Downsampled_data,Down_Sampled_rate,sub_directory,file_name)
      else:
       N = len(data)
       total_time = (N-1)/Fs1
@@ -165,51 +144,64 @@ for i in range (0,len(directories)):
       Left_channel_right_channel = np.vstack((Left_channel_Stereo, Right_channel_Stereo))
       Left_channel_right_channel=Left_channel_right_channel.transpose()
       if Generate_normalised_downsampled_speech ==1:
-       sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
-       rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-       normalizedsound = effects.normalize(rawsound)  
-       normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
+       sf.write('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), Left_channel_right_channel, Fs2, 'PCM_16')
        Down_Sampled_rate, Downsampled_data = wavfile.read('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
        Downsampled_data = Downsampled_data
        Down_Sampled_data_left = Left_channel_right_channel[:,0]
        Down_Sampled_data_right = Left_channel_right_channel[:,1]
       if Generate_normalised_downsampled_noise == 1:
-        sf.write("Spectogram/MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[i], Transformed_single_channel, Fs2, 'PCM_16')
-        rawsound = AudioSegment.from_wav('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])  
-        normalizedsound = effects.normalize(rawsound)  
-        normalizedsound.export('MY_Experimenting_Folder\\Processed_audio\\'+directories[i], format = 'wav')
-        Down_Sampled_rate, Downsampled_data = wavfile.read('MY_Experimenting_Folder\\Processed_audio\\'+directories[i])
+        sf.write('Model/Convert_audio_to_spectrogram/audio/noise/noise'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name), Left_channel_right_channel, Fs2, 'PCM_16')
+        Down_Sampled_rate, Downsampled_data = wavfile.read('Model/Convert_audio_to_spectrogram/audio/noise/noise'+str(directory)+'/'+str(sub_directory)+'/'+str(file_name))
         Downsampled_data = Downsampled_data
         Down_Sampled_data_left = Left_channel_right_channel[:,0]
         Down_Sampled_data_right = Left_channel_right_channel[:,1]
-      if Generate_spectrogram ==1 :
-       f, t, Lxx = signal.spectrogram(x = Down_Sampled_data_left, fs = Fs2, window = 'hann',nperseg = 512,noverlap = 384,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
-       plt.pcolormesh(t, f, 10 * np.log10(Lxx), cmap ='magma')
-       plt.colorbar(label='Decibels')
-       plt.ylabel('Frequency [Hz]')
-       plt.xlabel('Time [sec]')
-       plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Left.png')
-       plt.close()
-       f, t, Rxx = signal.spectrogram(x = Down_Sampled_data_right,fs = Fs2, window = 'hann',nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
-       plt.pcolormesh(t, f, 10 * np.log10(Rxx), cmap ='Greys')
-       plt.colorbar(label='Decibels')
-       plt.ylabel('Frequency [Hz]')
-       plt.xlabel('Time [sec]')
-       plt.savefig('Spectrogram_Plots/Mag/' + directories[i] + 'Magnitude_Plot_Right.png')
-       Phase, t_phase, Lxx_Phase = signal.spectrogram( x = Down_Sampled_data_left, fs = Fs2, window = 'hann', nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
-       plt.pcolormesh(t_phase, Phase, Lxx_Phase, cmap ='magma')
-       plt.colorbar(label='Phase')
-       plt.ylabel('Frequency [Hz]')
-       plt.xlabel('Time [sec]')
-       plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Left.png')
-       plt.close()
-       Phase, t_phase, Rxx_Phase = signal.spectrogram(x = Down_Sampled_data_right,fs = Fs2, window = 'hann', nperseg = 512,noverlap = 384,nfft =  1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='angle')
-       plt.pcolormesh(t_phase, Phase, Rxx_Phase, cmap ='magma')
-       plt.colorbar(label='Phase')
-       plt.ylabel('Frequency [Hz]')
-       plt.xlabel('Time [sec]')
-       plt.savefig('Spectrogram_Plots/Phase/' + directories[i] + 'Phase_Plot_Right.png')
-       plt.close()
+        #Generate_Stereo_Spectrogram(Down_Sampled_data_left,Down_Sampled_data_right,Fs2,sub_directory,file_name)
+pass
+
+if Generate_data == 1:
+  for root, dirs, files in os.walk("C:\\Users\\Timothy\Desktop\\MY_Experimenting_Folder\\Test_Audio", topdown=True):
+   for name in files:
+      if (os.path.join(root, name).endswith('.wav')):
+       samplerate, data = wavfile.read(os.path.join(root, name))
+       sf.write('C:\\Users\\Timothy\\Desktop\\Random_data\\'+ str(uuid.uuid4())+'.wav', data, samplerate, 'PCM_16')
+   for name in dirs:
+      if (os.path.join(root, name).endswith('.wav')):
+       samplerate, data = wavfile.read(os.path.join(root, name))
+       sf.write('C:\\Users\\Timothy\\Desktop\\Random_data\\'+ str(uuid.uuid4())+'.wav', data, samplerate, 'PCM_16')
+      
+
+
+
+
+#print(directories)
+for i in range (0,len(directories)): 
+   folders_in_directory = os.listdir(path+'/'+str(directories[i]))
+   #print(folders_in_directory)
+   if Generate_normalised_downsampled_speech ==1: #to do: copy the directories like that of the noise and speech samples.
+    for folder_of_speech in range(0,len(folders_in_directory)):
+      speech_files = os.listdir('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_speech]))
+      for speech_wav_file in range (0,len(speech_files)):
+        samplerate, data = wavfile.read('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_speech])+'/'+str(speech_files[speech_wav_file]))
+        Bit_Check = wave.open('Model/Convert_audio_to_spectrogram/audio/speech/VCTK-Corpus/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_speech])+'/'+str(speech_files[speech_wav_file]), 'rb')
+        downsample_and_write_to_folder(data,samplerate,Bit_Check,directories[i],folders_in_directory[folder_of_speech],speech_files[speech_wav_file])
+   
+   
+   
+   # samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i])
+    #print(samplerate)
+    #Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/speech/"+ directories[i], 'rb')
+   if Generate_normalised_downsampled_noise == 1:
+    for folder_of_noise in range(0,len(folders_in_directory)):
+      noise_files = os.listdir('Model/Convert_audio_to_spectrogram/audio/noise/noise/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_noise]))
+      for noise_wav_file in range (0,len(noise_files)):
+        samplerate, data = wavfile.read('Model/Convert_audio_to_spectrogram/audio/noise/noise/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_noise])+'/'+str(noise_files[noise_wav_file]))
+        Bit_Check = wave.open('Model/Convert_audio_to_spectrogram/audio/noise/noise/'+str(directories[i])+'/'+str(folders_in_directory[folder_of_noise])+'/'+str(noise_files[noise_wav_file]), 'rb')
+        downsample_and_write_to_folder(data,samplerate,Bit_Check,directories[i],folders_in_directory[folder_of_noise],noise_files[noise_wav_file])
+    # samplerate, data = wavfile.read("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i])
+    #Bit_Check = wave.open("Model/Convert_audio_to_spectrogram/audio/noise/"+ directories[i], 'rb')
+
+
+  
 #print(np.shape(Left_channel_Stereo))
 #Left_channel_Stereo = effects.normalize(Left_channel_Stereo)
 #Right_channel_Stereo = effects.normalize(Right_channel_Stereo)
