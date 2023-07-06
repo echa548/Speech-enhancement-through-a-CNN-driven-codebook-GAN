@@ -24,7 +24,8 @@ from scipy.special import logsumexp
 os.chdir('C:/Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram')
 
 samplerate =0
-
+train_noise = 0
+train_speech = 0
 def em(data, components, iterations, RNGseed):
  Number_of_samples = data.shape[0]
  np.random.seed(RNGseed)
@@ -185,9 +186,61 @@ def Hann_window_a_signal(Windowed_data):
  padded_signal = np.pad(Hann_Windowed_data,(0,512), 'constant')
  Windowed_data_fft = np.fft.fft(padded_signal,1024)
  return Windowed_data_fft
-def trainGMMspeech():
- 
- pass
+
+
+def trainGMMspeech(Components,iterations,seed):
+ directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_speech')
+ N_fft = 1024
+ pre_codebook_array = np.zeros((N_fft,len(directories)))
+ speech_codebook_array = np.zeros((N_fft,Components))
+ for No_of_data in range (0,len(directories)):
+   samplerate, data = wavfile.read("MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[No_of_data])
+   #print(len(data))
+   data = data[int(len(data)/2):len(data)]
+   #print(len(data))
+   Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[No_of_data], 'rb')
+   bit_depth = Bit_Check.getsampwidth() * 8
+   data = data/(2**(bit_depth-1))
+  
+   Overlaps = math.floor(len(data)/128)
+   PSD_of_overlaps = np.zeros((N_fft,Overlaps))
+   Mean_PSD_val = np.zeros(N_fft)
+   for No_of_overlaps in range (0,Overlaps-10):
+     #Rectangular_windowed_signal = data[int((Overlaps/2)*128)+128*No_of_overlaps:int((Overlaps/2)*128)+512+128*No_of_overlaps] #sliding window from approximately 1/2 of the signal
+     Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
+     FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
+     Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
+     PSD_window_scaling = np.sum(Hann_window**2)
+     PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
+     PSD_of_overlaps[:,No_of_overlaps] = PSD_of_windowed_signal
+
+
+   for frequency_bin in range (0,N_fft):
+       Mean_PSD_val[frequency_bin] = np.mean(PSD_of_overlaps[frequency_bin,:])
+     
+        
+   for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
+      pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
+   
+ print(pre_codebook_array)
+ for Frequency_bin in range (0,N_fft):
+    Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
+    Transpose = np.transpose(Frequency_bin_accross_all_data)
+    n_iterations_pre_sieving = 5
+    n_candidates = 100
+    n_iterations_post_sieving = 100
+    n_chosen_ones = 10
+    
+    class_probs, mean_vector, sigmas,log_likelihood = em_sieved( Transpose,
+        Components,
+        n_iterations_pre_sieving,
+        n_candidates,
+        n_iterations_post_sieving,
+        n_chosen_ones,
+        seed)
+    speech_codebook_array[Frequency_bin,:] = mean_vector
+    print(mean_vector)
+ return speech_codebook_array
 
 def trainGMMnoise(Components,iterations,seed):
  directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_noise')
@@ -199,22 +252,17 @@ def trainGMMnoise(Components,iterations,seed):
    Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
-   #Rectangular_windowed_signal = data[0:1023]
+  
    Overlaps = math.floor(len(data)/128)
    PSD_of_overlaps = np.zeros((N_fft,Overlaps))
    Mean_PSD_val = np.zeros(N_fft)
    for No_of_overlaps in range (0,Overlaps-5):
      Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
-     #padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
-     #print(padded_signal)
      FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
      Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
      PSD_window_scaling = np.sum(Hann_window**2)
-     #print(PSD_window_scaling)
      PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
-     #print(PSD_of_windowed_signal)
      PSD_of_overlaps[:,No_of_overlaps] = PSD_of_windowed_signal
-     #print(PSD_of_overlaps[:,No_of_overlaps])
 
 
    for frequency_bin in range (0,N_fft):
@@ -229,10 +277,10 @@ def trainGMMnoise(Components,iterations,seed):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
     Transpose = np.transpose(Frequency_bin_accross_all_data)
     #print(np.shape(Transpose))
-    n_iterations_pre_sieving = 5
+    n_iterations_pre_sieving = 10
     n_candidates = 100
     n_iterations_post_sieving = 100
-    n_chosen_ones = 10
+    n_chosen_ones = 30
     
     class_probs, mean_vector, sigmas,log_likelihood = em_sieved( Transpose,
         Components,
@@ -245,69 +293,112 @@ def trainGMMnoise(Components,iterations,seed):
     print(mean_vector)
  return Noise_codebook_array
 
-#True clusters
-N_clusters = 18
-iterations = 100
-#RNG seed
-seed = 21
-#Noise_codebook = trainGMMnoise(N_clusters,iterations,seed)
-#myFile = open('list.txt', 'r+')
-#np.savetxt(myFile, Noise_codebook)
-#myFile.close()
-text_file = open("list.txt", "r")
-lines = text_file.readlines()
-text_file.close()
-Noise_codebook2 = np.zeros((1024,N_clusters))
+def generate_filtered_speech():
+ text_file = open("Noise_list.txt", "r")
+ lines = text_file.readlines()
+ text_file.close()
+ Noise_codebook2 = np.zeros((1024,Noise_clusters))
 
+ speech_file = open("Speech_list.txt", "r")
+ speech_lines = speech_file.readlines()
+ speech_file.close()
+ Speech_codebook2 = np.zeros((1024,Speech_clusters))
 #to do: train speech :/
+ for frequency_bin in range (0,len(lines)):
+  string_list = lines[frequency_bin].split()
+  for component in range (0, len(string_list)):
+   Noise_codebook2[frequency_bin,component] = float(string_list[component])
 
-for frequency_bin in range (0,len(lines)):
- string_list = lines[frequency_bin].split()
- for component in range (0, len(string_list)):
-  Noise_codebook2[frequency_bin,component] = float(string_list[component])
-  
   #print(wow)
 
-mixture_PSD = 1 #to do: read noisy mixture
-N_fft = 1024
-directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_noise')
-for No_of_data in range (0,1):
-   samplerate, data = wavfile.read("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data])
-   Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data], 'rb')
+ for frequency_bin in range (0,len(speech_lines)):
+  string_list = speech_lines[frequency_bin].split()
+  print(string_list)
+  for component in range (0, len(string_list)):
+   if string_list[component] == "nan":
+    Speech_codebook2[frequency_bin,component] = 0
+   else:
+    Speech_codebook2[frequency_bin,component] = float(string_list[component])
+
+
+ N_fft = 1024
+ directories = os.listdir('creating_dataset/dataset_all/-6dB')
+ for No_of_data in range (0,20):
+   samplerate, data = wavfile.read("creating_dataset/dataset_all/-6dB/"+ directories[No_of_data])
+   Bit_Check = wave.open("creating_dataset/dataset_all/-6dB/"+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
    #Rectangular_windowed_signal = data[0:1023]
    Overlaps = math.floor(len(data)/128)
    PSD_of_overlaps = np.zeros((N_fft,Overlaps))
    Mean_PSD_val = np.zeros(N_fft)
-   for No_of_overlaps in range (0,Overlaps-5):
+   audio= np.zeros(len(data))
+   for No_of_overlaps in range (0,Overlaps-5): #need to fix this, ignores the last few parts
+     
      Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
      #padded_signal = np.pad(Rectangular_windowed_signal,(0,512), 'constant')
      #print(padded_signal)
+     Estimated_speech_PSD = np.zeros(N_fft)
+     Estimated_noise_PSD = np.zeros(N_fft)
      FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
+     #Phase_of_FFT = np.angle(FFT_of_windowed_signal)
      Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
      PSD_window_scaling = np.sum(Hann_window**2)
      #print(PSD_window_scaling)
      PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
-     inverse = np.linalg.pinv(Noise_codebook2)
-     coeffs = inverse*PSD_of_windowed_signal
-     #print(np.shape(coeffs.transpose()))
-     print(coeffs)
-    #  for frequency_bin in range (0,N_fft):
-    #    inverse = np.linalg.pinv(Noise_codebook2[frequency_bin,:])
-    #    coeffs = inverse*mixture_PSD
-    #    print(coeffs)
+     PSD_of_windowed_signal = np.transpose(PSD_of_windowed_signal)
+     print(np.shape(PSD_of_windowed_signal))
+     Noise_inverse = np.linalg.pinv(Noise_codebook2)
+     Noise_coeffs = Noise_inverse*PSD_of_windowed_signal
+     Speech_inverse = np.linalg.pinv(Speech_codebook2)
+     Speech_coeffs = Speech_inverse*PSD_of_windowed_signal
+     #Speech_coeffs = np.transpose(Speech_coeffs)
+    # Noise_coeffs = np.transpose(Noise_coeffs)
+     Estimated_speech_PSD_codebook = Speech_coeffs*Speech_codebook2
+     Estimated_noise_PSD_codebook = Noise_coeffs*Noise_codebook2
+
+     for Freq_bin in range (0,N_fft):
+       Estimated_speech_PSD[Freq_bin]=np.sum(Estimated_speech_PSD_codebook[Freq_bin,:])
+       Estimated_noise_PSD[Freq_bin]=np.sum(Estimated_noise_PSD_codebook[Freq_bin,:])
+       
+     Current_frame_weiner_coeffs = Estimated_speech_PSD/(2*Estimated_noise_PSD+Estimated_speech_PSD)
+     De_noised_frame = (Current_frame_weiner_coeffs)*FFT_of_windowed_signal
+     FFT_to_audio = np.fft.ifft(De_noised_frame)
+     audio[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio[0:512] #recover only the windowed signal and not the zero-pad
+   sf.write('MY_Experimenting_Folder/'+ directories[No_of_data], audio, 16000, 'PCM_16')     
+
+
+#True clusters
+Noise_clusters = 9
+Speech_clusters = 7
+iterations = 100
+#RNG seed
+seed = 21
+# Noise_codebook = trainGMMnoise(Noise_clusters,iterations,seed)
+# myFile = open('Noise_list.txt', 'r+')
+# np.savetxt(myFile, Noise_codebook)
+# myFile.close()
+# Speech_codebook = trainGMMspeech(Speech_clusters,iterations,seed)
+# myFile = open('Speech_list.txt', 'r+')
+# np.savetxt(myFile, Speech_codebook)
+# myFile.close()
+
+
+generate_filtered_speech()
+#After training, we use the original non-sieving GMM for the adversarial network
+
+
+
+
+
+
+
      
 
-#print(np.shape(Noise_codebook2))
-#wow = lines[0].split()
-#print(len(wow))
-#print (lines[0])
-
-#
-
-#Tensor representation of each image with only Red channel
 
 
+
+#Real_signal_Left = np.array(sps.istft(Zxx = combined_Left,fs = Fs2,  window = 'hann',nperseg = 640,noverlap = 480,nfft =  2048,input_onesided=True,boundary=True, time_axis=-1, freq_axis=-2, scaling='spectrum'))
+#Real_signal_Right = np.array(sps.istft(Zxx = combined_Right,fs =Fs2,  window = 'hann',nperseg = 640,noverlap = 480,nfft =  2048,input_onesided=True,boundary=True, time_axis=-1, freq_axis=-2, scaling='spectrum'))
 
 
