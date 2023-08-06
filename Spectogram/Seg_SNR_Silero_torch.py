@@ -80,7 +80,7 @@ for target_db in range (0,len(targets)):
    samplerate, Noise_data = wavfile.read(Path_to_noise+'/'+Noise_dir[No_of_data])
    Bit_Check = wave.open(Path_to_noise+'/'+ Noise_dir[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
-   Noise_data = Speech_data/(2**(bit_depth-1))
+   Noise_data = Noise_data/(2**(bit_depth-1))
 
 
    Noise = read_audio(Path_to_noise+'/'+Noise_dir[No_of_data], sampling_rate = 16000)
@@ -109,106 +109,24 @@ for target_db in range (0,len(targets)):
     sf.write(Path_to_save+'/'+str(Speech_dir[No_of_data]), Adjusted_noisy_speech, 16000, 'PCM_16')
     sf.write(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]), Multiple*Noise_data, 16000, 'PCM_16')
 
-    #save_audio(Path_to_save+'/'+str(Speech_dir[No_of_data]),
-    #         Adjusted_noisy_speech, sampling_rate=16000)
-    #save_audio(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]),
-    #         Multiple*Noise, sampling_rate=16000) 
-
-#     Segments_in_audio = math.floor(len(Speech_Numpy) / N_samples_per_seg)
-#     total_sum = 0
-#     for segments in range(Segments_in_audio):
-#       start_idx = segments * N_samples_per_seg
-#       end_idx = start_idx + N_samples_per_seg
-
-#       Current_speech_segment = Speech_Numpy[start_idx:end_idx]
-#       Current_noise_segment = Noise_Numpy[start_idx:end_idx]
-
-#       # Calculate the power of speech and noise for the current segment
-#       Power_of_Speech = np.sum(Current_speech_segment ** 2)
-#       Power_of_Noise = np.sum(Current_noise_segment ** 2)
-
-#       # Calculate the target segmental SNR in dB
-
-#       # Calculate the required value of Multiple to achieve the target SNR for the current segment
-#       Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
-
-#       # Adjust the noise segment to match the target SNR
-#       Current_noise_segment *= Multiple
-
-#       # Recalculate the power of noise with the adjusted noise segment
-#       Power_of_Noise_adjusted = np.sum(Current_noise_segment ** 2)
-
-#       # Calculate the segmental SNR for the current segment and add it to the total sum
-#       total_sum += Power_of_Speech / Power_of_Noise_adjusted
-#       #total_sum += Power_of_Speech / Power_of_Noise
-
-
-#    Pre_db = total_sum / Segments_in_audio
-
-#    Seg_SNR = 10 * np.log10(Pre_db)
-
-  else:
+   else:
    
-   Speech_Numpy = wav.numpy()
-   Noise_Numpy = Noise.numpy()
-   Power_of_Speech = np.sum(Speech_Numpy ** 2)
-   Power_of_Noise = np.sum(Noise_Numpy ** 2)
-   #snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
+    Speech_Numpy = wav.numpy()
+    Noise_Numpy = Noise.numpy()
+    Power_of_Speech = np.sum(Speech_Numpy ** 2)
+    Power_of_Noise = np.sum(Noise_Numpy ** 2)
+    #snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
 
 
-   Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
-   Noise_Numpy = Multiple * Noise_Numpy
-   Power_of_Noise = np.sum(Noise_Numpy ** 2)
-    # Print the calculated SNR to verify that it matches the target SNR
-   snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
-   Adjusted_noisy_speech = Speech_data+Multiple*Noise_data
-   sf.write(Path_to_save+'/'+str(Speech_dir[No_of_data]), Adjusted_noisy_speech, 16000, 'PCM_16')
-   sf.write(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]), Multiple*Noise_data, 16000, 'PCM_16')
-    # Segments_in_audio = math.floor(len(Speech_Numpy) / N_samples_per_seg)
-    # total_sum = 0
-
-#    for segments in range(Segments_in_audio):
-#     start_idx = segments * N_samples_per_seg
-#     end_idx = start_idx + N_samples_per_seg
-
-#     Current_speech_segment = Speech_Numpy[start_idx:end_idx]
-#     Current_noise_segment = Noise_Numpy[start_idx:end_idx]
-
-#     # Calculate the power of speech and noise for the current segment
-#     Power_of_Speech = np.sum(Current_speech_segment ** 2)
-#     Power_of_Noise = np.sum(Current_noise_segment ** 2)
-
-#     # Calculate the target segmental SNR in dB
-#     #SNR_target = SNR_target
-
-#     # Calculate the required value of Multiple to achieve the target SNR for the current segment
-#     #Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
-
-#     # Adjust the noise segment to match the target SNR
-#     #Current_noise_segment *= Multiple
-
-#     # Recalculate the power of noise with the adjusted noise segment
-#     #Power_of_Noise_adjusted = np.sum(Current_noise_segment ** 2)
-
-#     # Calculate the segmental SNR for the current segment and add it to the total sum
-#     #total_sum += Power_of_Speech / Power_of_Noise_adjusted
-#     total_sum += Power_of_Speech / Power_of_Noise
-#  # Calculate the mean of the segmental SNRs
-#    Pre_db = total_sum / Segments_in_audio
-
-#  # Calculate the final segmental SNR in dB
-#    Seg_SNR = 10 * np.log10(Pre_db)
-#    SNR_check[No_of_data,:] = [snr_global,Seg_SNR]
-  
-
-
-# myFile = open('SNR_check.txt', 'r+')
-# np.savetxt(myFile, SNR_check)
-# myFile.close()
-
-
-
-
+    Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
+    Noise_Numpy = Multiple * Noise_Numpy
+    Power_of_Noise = np.sum(Noise_Numpy ** 2)
+     # Print the calculated SNR to verify that it matches the target SNR
+    snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
+    Adjusted_noisy_speech = Speech_data+Multiple*Noise_data
+    sf.write(Path_to_save+'/'+str(Speech_dir[No_of_data]), Adjusted_noisy_speech, 16000, 'PCM_16')
+    sf.write(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]), Multiple*Noise_data, 16000, 'PCM_16')
+    
 
   
 pass
@@ -216,91 +134,3 @@ pass
 
 
 
-# wav = read_audio('test.wav', sampling_rate=16000)
-# speech_timestamps = get_speech_timestamps(wav, model, sampling_rate=16000)
-# # save_audio('only_speech.wav',
-# #            collect_chunks(speech_timestamps, wav), sampling_rate=16000) 
-# Noise = read_audio('noise_1005.wav', sampling_rate = 16000)
-# Noise_overlap = get_speech_timestamps(wav, model, sampling_rate=16000)
-# # print(str(Noise_overlap))
-# # Noise_overlap = re.findall(r"[-+]?\d*\.?\d+|[-+]?\d+", str(Noise_overlap))
-# # print(Noise_overlap)
-# Noise_overlap = collect_chunks(speech_timestamps,Noise)
-# Speech_only = collect_chunks(speech_timestamps, wav)
-# # Speech_only = Speech_only.numpy()
-# Multiple = 1
-# # Noise_overlap = Multiple*Noise_overlap.numpy()
-# # #print(np.shape(Speech_only))
-
-# # snr_global = 10*np.log10(np.sum(Speech_only**2)/np.sum(Noise_overlap**2))
-# # print(snr_global)
-# # target = -6
-
-# Speech_Numpy = Speech_only.numpy()
-# Noise_Numpy = Multiple * Noise_overlap.numpy()
-
-# # Calculate the power of speech and noise
-# Power_of_Speech = np.sum(Speech_Numpy ** 2)
-# Power_of_Noise = np.sum(Noise_Numpy ** 2)
-
-# # Calculate the target SNR in dB
-# SNR_target = -30
-
-# # Calculate the required value of Multiple to achieve the target SNR
-# Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
-# Noise_Numpy = Multiple * Noise_Numpy
-# Power_of_Noise = np.sum(Noise_Numpy ** 2)
-# # Print the calculated SNR to verify that it matches the target SNR
-# snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
-# print(snr_global)
-
-
-
-# #take 100ms samples
-# Segment_length_in_seconds = 0.1
-# Sampling_period = 1 / 16000
-# N_samples_per_seg = int(Segment_length_in_seconds / Sampling_period)
-
-# Segments_in_audio = math.floor(len(Speech_Numpy) / N_samples_per_seg)
-# total_sum = 0
-
-# for segments in range(Segments_in_audio):
-#     start_idx = segments * N_samples_per_seg
-#     end_idx = start_idx + N_samples_per_seg
-
-#     Current_speech_segment = Speech_Numpy[start_idx:end_idx]
-#     Current_noise_segment = Noise_Numpy[start_idx:end_idx]
-
-#     # Calculate the power of speech and noise for the current segment
-#     Power_of_Speech = np.sum(Current_speech_segment ** 2)
-#     Power_of_Noise = np.sum(Current_noise_segment ** 2)
-
-#     # Calculate the target segmental SNR in dB
-#     SNR_target = SNR_target
-
-#     # Calculate the required value of Multiple to achieve the target SNR for the current segment
-#     Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
-
-#     # Adjust the noise segment to match the target SNR
-#     Current_noise_segment *= Multiple
-
-#     # Recalculate the power of noise with the adjusted noise segment
-#     Power_of_Noise_adjusted = np.sum(Current_noise_segment ** 2)
-
-#     # Calculate the segmental SNR for the current segment and add it to the total sum
-#     total_sum += Power_of_Speech / Power_of_Noise_adjusted
-
-# # Calculate the mean of the segmental SNRs
-# Pre_db = total_sum / Segments_in_audio
-
-# # Calculate the final segmental SNR in dB
-# Seg_SNR = 10 * np.log10(Pre_db)
-# Speech_Noise = Speech_only+Multiple*Noise_overlap
-# print(Seg_SNR)
-# save_audio('whatevs.wav',
-#             Speech_Noise, sampling_rate=16000) 
-
-
-
-
-#implemenet SileroVAD then do SegmentSNR as Chehresa used it
