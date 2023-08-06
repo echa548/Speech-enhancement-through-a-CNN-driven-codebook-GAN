@@ -71,8 +71,8 @@ for target_db in range (0,len(targets)):
    #print(No_of_data)
    wav = read_audio(Path_to_speech+'/'+Speech_dir[No_of_data], sampling_rate=16000)
    
-   samplerate, Speech_data = wavfile.read("creating_dataset2/dataset_all4/-6dB/"+ Speech_dir[No_of_data])
-   Bit_Check = wave.open("creating_dataset2/dataset_all4/-6dB/"+ Speech_dir[No_of_data], 'rb')
+   samplerate, Speech_data = wavfile.read(Path_to_speech+"/"+ Speech_dir[No_of_data])
+   Bit_Check = wave.open(Path_to_speech+"/"+ Speech_dir[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    Speech_data = Speech_data/(2**(bit_depth-1))
 
@@ -109,6 +109,7 @@ for target_db in range (0,len(targets)):
     sf.write(Path_to_save+'/'+str(Speech_dir[No_of_data]), Adjusted_noisy_speech, 16000, 'PCM_16')
     sf.write(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]), Multiple*Noise_data, 16000, 'PCM_16')
 
+
    else:
    
     Speech_Numpy = wav.numpy()
@@ -121,14 +122,11 @@ for target_db in range (0,len(targets)):
     Multiple = np.sqrt(Power_of_Speech / (Power_of_Noise * (10 ** (SNR_target / 10))))
     Noise_Numpy = Multiple * Noise_Numpy
     Power_of_Noise = np.sum(Noise_Numpy ** 2)
-     # Print the calculated SNR to verify that it matches the target SNR
+    # Print the calculated SNR to verify that it matches the target SNR
     snr_global = 10 * np.log10(Power_of_Speech / Power_of_Noise)
     Adjusted_noisy_speech = Speech_data+Multiple*Noise_data
     sf.write(Path_to_save+'/'+str(Speech_dir[No_of_data]), Adjusted_noisy_speech, 16000, 'PCM_16')
     sf.write(Path_to_save_for_noise+'/'+str(Speech_dir[No_of_data]), Multiple*Noise_data, 16000, 'PCM_16')
-    
-
-  
 pass
 
 
