@@ -21,11 +21,15 @@ from pydub import AudioSegment, effects
 import wave
 
 from scipy.special import logsumexp
-os.chdir('C:/Users/Timothy/Documents/GitHub/COMPSYS-ELECTENG-700/Spectogram')
-
+os.chdir('C:/Users/Timothy/Documents/GitHub/COPY_OF_CURRENT_VER/Spectogram')
+# print(tf.__version__)
+# print(len(tf.config.list_physical_devices('GPU')))
 samplerate =0
 train_noise = 0
 train_speech = 0
+Path_to_noise = 'MY_Experimenting_Folder/Processed_audio/processed_noise'
+Noise_file_for_filter = 'Noise_list.txt'
+Path_to_noisy_speech = 'creating_dataset2/dataset_all4/-6dB'
 def em(data, components, iterations, RNGseed):
  Number_of_samples = data.shape[0]
  np.random.seed(RNGseed)
@@ -189,14 +193,19 @@ def Hann_window_a_signal(Windowed_data):
 
 
 def trainGMMspeech(Components,iterations,seed):
- directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_speech')
+ directories = os.listdir('Proper_speech')
+ path_to_VAD_speech = 'Proper_speech/'
  N_fft = 1024
  pre_codebook_array = np.zeros((N_fft,len(directories)))
  speech_codebook_array = np.zeros((N_fft,Components))
+ speech_CompProb_array = np.zeros((N_fft,Components))
+ speech_sigmas_array = np.zeros((N_fft,Components))
  for No_of_data in range (0,len(directories)):
-   samplerate, data = wavfile.read("MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[No_of_data])
+   samplerate, data = wavfile.read(path_to_VAD_speech+ directories[No_of_data])
+   #print(len(data))
    data = data[int(len(data)/2):len(data)]
-   Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_speech/"+ directories[No_of_data], 'rb')
+   #print(len(data))
+   Bit_Check = wave.open(path_to_VAD_speech+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
   
@@ -204,6 +213,7 @@ def trainGMMspeech(Components,iterations,seed):
    PSD_of_overlaps = np.zeros((N_fft,Overlaps))
    Mean_PSD_val = np.zeros(N_fft)
    for No_of_overlaps in range (0,Overlaps-10):
+     #Rectangular_windowed_signal = data[int((Overlaps/2)*128)+128*No_of_overlaps:int((Overlaps/2)*128)+512+128*No_of_overlaps] #sliding window from approximately 1/2 of the signal
      Rectangular_windowed_signal = data[0+128*No_of_overlaps:512+128*No_of_overlaps]
      FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
      Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
@@ -219,7 +229,10 @@ def trainGMMspeech(Components,iterations,seed):
    for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
       pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
    
- print(pre_codebook_array)
+ #print(pre_codebook_array)
+ myFile = open('Mean_check.txt', 'r+')
+ np.savetxt(myFile, pre_codebook_array)
+ myFile.close()
  for Frequency_bin in range (0,N_fft):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
     Transpose = np.transpose(Frequency_bin_accross_all_data)
@@ -236,7 +249,9 @@ def trainGMMspeech(Components,iterations,seed):
         n_chosen_ones,
         seed)
     speech_codebook_array[Frequency_bin,:] = mean_vector
-    # for log_likelihood_history in log_likelihood:  DAMN THING KEEP GIVING PERMISSION ERRORS
+    speech_CompProb_array[Frequency_bin,:] = class_probs
+    speech_sigmas_array[Frequency_bin,:] = sigmas
+    # for log_likelihood_history in log_likelihood:
     #     plt.plot(log_likelihood_history)
     #     plt.xlabel("Iteration")
     #     plt.ylabel("Log Likelihood")
@@ -244,16 +259,18 @@ def trainGMMspeech(Components,iterations,seed):
     #     plt.close()
 
     print(mean_vector)
- return speech_codebook_array
+ return speech_CompProb_array, speech_codebook_array, speech_sigmas_array
 
 def trainGMMnoise(Components,iterations,seed):
- directories = os.listdir('MY_Experimenting_Folder/Processed_audio/processed_noise')
+ directories = os.listdir(Path_to_noise)
  N_fft = 1024
  pre_codebook_array = np.zeros((N_fft,len(directories)))
  Noise_codebook_array = np.zeros((N_fft,Components))
+ Noise_CompProb_array = np.zeros((N_fft,Components))
+ Noise_sigmas_array = np.zeros((N_fft,Components))
  for No_of_data in range (0,len(directories)):
-   samplerate, data = wavfile.read("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data])
-   Bit_Check = wave.open("MY_Experimenting_Folder/Processed_audio/processed_noise/"+ directories[No_of_data], 'rb')
+   samplerate, data = wavfile.read(Path_to_noise+'/'+ directories[No_of_data])
+   Bit_Check = wave.open(Path_to_noise+'/'+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
   
@@ -271,17 +288,24 @@ def trainGMMnoise(Components,iterations,seed):
 
    for frequency_bin in range (0,N_fft):
        Mean_PSD_val[frequency_bin] = np.mean(PSD_of_overlaps[frequency_bin,:])
+       #print(Mean_PSD_val[frequency_bin])
         
    for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
       pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
- print(pre_codebook_array)
+      #print(PSD_of_windowed_signal[Frequency_bin])
+ 
+ myFile = open('Noise_check.txt', 'r+')
+ np.savetxt(myFile, pre_codebook_array)
+ myFile.close()
+ print('done!')
  for Frequency_bin in range (0,N_fft):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
     Transpose = np.transpose(Frequency_bin_accross_all_data)
-    n_iterations_pre_sieving = 10 #do the EM a little bit and check log likelihoods
+    #print(np.shape(Transpose))
+    n_iterations_pre_sieving = 5 #do the EM a little bit and check log likelihoods
     n_candidates = 100 #select 100 candidates
-    n_iterations_post_sieving = 100  #Do the EM algorithm for each chosen candidate
-    n_chosen_ones = 30
+    n_iterations_post_sieving = 100  
+    n_chosen_ones = 10
     
     class_probs, mean_vector, sigmas,log_likelihood = em_sieved( Transpose,
         Components,
@@ -291,17 +315,19 @@ def trainGMMnoise(Components,iterations,seed):
         n_chosen_ones,
         seed)
     Noise_codebook_array[Frequency_bin,:] = mean_vector
-    # for log_likelihood_history in log_likelihood: DAMN THING KEEP GIVING PERMISSION ERRORS
+    Noise_CompProb_array[Frequency_bin,:] = class_probs
+    Noise_sigmas_array[Frequency_bin,:] = sigmas
+    # for log_likelihood_history in log_likelihood:
     #     plt.plot(log_likelihood_history)
     #     plt.xlabel("Iteration")
     #     plt.ylabel("Log Likelihood")
     #     plt.savefig('Noise_FFT_Log_likelihood/'+'Frequency_bin_'+str(Frequency_bin)+'_'+'Convergence.png')
     #     plt.close()
     print(mean_vector)
- return Noise_codebook_array
+ return Noise_CompProb_array,Noise_codebook_array,Noise_sigmas_array
 
 def generate_filtered_speech():
- text_file = open("Noise_list.txt", "r")  #make sure this is at the same location as this file
+ text_file = open(Noise_file_for_filter, "r")  #make sure this is at the same location as this file
  lines = text_file.readlines()
  text_file.close()
  Noise_codebook2 = np.zeros((1024,Noise_clusters))
@@ -314,9 +340,10 @@ def generate_filtered_speech():
  for frequency_bin in range (0,len(lines)):
   string_list = lines[frequency_bin].split()
   for component in range (0, len(string_list)):
-   Noise_codebook2[frequency_bin,component] = float(string_list[component])
-
- 
+   if string_list[component] == "nan":
+    Noise_codebook2[frequency_bin,component] = 0
+   else:
+    Noise_codebook2[frequency_bin,component] = float(string_list[component])
 
  for frequency_bin in range (0,len(speech_lines)):
   string_list = speech_lines[frequency_bin].split()
@@ -329,10 +356,10 @@ def generate_filtered_speech():
 
 
  N_fft = 1024
- directories = os.listdir('creating_dataset/dataset_all/-6dB') #put the directory here. Could modify this for all the cases (-3 to -9dB) but for now lets test -6dB
+ directories = os.listdir(Path_to_noisy_speech) #put the directory here. Could modify this for all the cases (-3 to -9dB) but for now lets test -6dB
  for No_of_data in range (0,20):
-   samplerate, data = wavfile.read("creating_dataset/dataset_all/-6dB/"+ directories[No_of_data])
-   Bit_Check = wave.open("creating_dataset/dataset_all/-6dB/"+ directories[No_of_data], 'rb')
+   samplerate, data = wavfile.read(Path_to_noisy_speech+'/'+ directories[No_of_data])
+   Bit_Check = wave.open(Path_to_noisy_speech+'/'+ directories[No_of_data], 'rb')
    bit_depth = Bit_Check.getsampwidth() * 8
    data = data/(2**(bit_depth-1))
    Overlaps = math.floor(len(data)/128)
@@ -348,50 +375,75 @@ def generate_filtered_speech():
      Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
      PSD_window_scaling = np.sum(Hann_window**2)
      PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
-     Noise_inverse = np.linalg.pinv(Noise_codebook2)
+     
+     
+     Noise_inverse = np.linalg.pinv(Noise_codebook2, rcond=1e-15)
      Noise_coeffs = Noise_inverse*PSD_of_windowed_signal
-     Speech_inverse = np.linalg.pinv(Speech_codebook2)
+     Speech_inverse = np.linalg.pinv(Speech_codebook2, rcond=1e-15)
      Speech_coeffs = Speech_inverse*PSD_of_windowed_signal
      Speech_coeffs = np.transpose(Speech_coeffs)
      Noise_coeffs = np.transpose(Noise_coeffs)
-     Estimated_speech_PSD_codebook = Speech_coeffs*Speech_codebook2
-     Estimated_noise_PSD_codebook = Noise_coeffs*Noise_codebook2
+     Estimated_speech_PSD_codebook = (Speech_coeffs*Speech_codebook2).clip(min=0)
+     Estimated_noise_PSD_codebook = (Noise_coeffs*Noise_codebook2).clip(min=0)
 
      for Freq_bin in range (0,N_fft):
        Estimated_speech_PSD[Freq_bin]=np.sum(Estimated_speech_PSD_codebook[Freq_bin,:])
        Estimated_noise_PSD[Freq_bin]=np.sum(Estimated_noise_PSD_codebook[Freq_bin,:])
 
-     Noise_suppression = 1 #These three value control the balance between noise suppression and the quality of the recovered speech
+     Noise_suppression = 2 #These three value control the balance between noise suppression and the quality of the recovered speech
      Speech_emphasis = 1  
      Weiner_scaling = 1
+
+
      Current_frame_weiner_coeffs = Estimated_speech_PSD/(Noise_suppression*Estimated_noise_PSD+Speech_emphasis*Estimated_speech_PSD)
      De_noised_frame = (Current_frame_weiner_coeffs**Weiner_scaling)*FFT_of_windowed_signal
      FFT_to_audio = np.fft.ifft(De_noised_frame)
      audio[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio[0:512] #recover only the windowed signal and not the zero-pad
-   sf.write('MY_Experimenting_Folder/'+ directories[No_of_data], audio, 16000, 'PCM_16')  #Write to a folder u want to keep it in.   
+   sf.write('Baseline/'+ directories[No_of_data], audio, 16000, 'PCM_16')     
 
 
 
 Noise_clusters = 9 #Same as that of the research paper GMM codebook something something
 Speech_clusters = 6
-iterations = 100
+iterations = 1000
 seed = 21
 
 #Training takes hours
-#comment this section out after training.
-# Noise_codebook = trainGMMnoise(Noise_clusters,iterations,seed)
-# myFile = open('Noise_list.txt', 'r+')
+#comment this section out after training
+Noise_CompProb_array, Noise_codebook, Noise_sigmas_array = trainGMMnoise(Noise_clusters,iterations,seed)
+# myFile = open(Noise_file_for_filter, 'r+')
 # np.savetxt(myFile, Noise_codebook)
 # myFile.close()
-# Speech_codebook = trainGMMspeech(Speech_clusters,iterations,seed)
+
+# myFile = open('Noise_probs.txt', 'r+')
+# np.savetxt(myFile, Noise_CompProb_array)
+# myFile.close()
+
+# myFile = open('Noise_sigma.txt', 'r+')
+# np.savetxt(myFile, Noise_sigmas_array)
+# myFile.close()
+
+
+
+# speech_CompProb_array, Speech_codebook, speech_sigmas_array = trainGMMspeech(Speech_clusters,iterations,seed)
 # myFile = open('Speech_list.txt', 'r+')
 # np.savetxt(myFile, Speech_codebook)
 # myFile.close()
+
+# myFile = open('Speech_probs.txt', 'r+')
+# np.savetxt(myFile, speech_CompProb_array)
+# myFile.close()
+
+# myFile = open('Speech_sigma.txt', 'r+')
+# np.savetxt(myFile, speech_sigmas_array)
+# myFile.close()
+
+
 #comment this section after training
 
 
-#Uncomment the line underneath if it is already trained.
-generate_filtered_speech() 
+#Uncomment the line underneath if training is desired.
+#generate_filtered_speech() 
 #After training, we use the original non-sieving GMM for the adversarial network
 
 
