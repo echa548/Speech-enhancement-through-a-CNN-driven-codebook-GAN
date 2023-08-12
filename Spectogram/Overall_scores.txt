@@ -1,0 +1,30 @@
+SDR:[0.8391455]dB SIR:[54.688435]dB SAR:[0.83917785]dB File:speech_1.wav
+SDR:[-12.652244]dB SIR:[54.612904]dB SAR:[-12.652226]dB File:GANspeech_1.wav
+SDR Improvement:[-13.491389]dB SIR Improvement:[-0.07553101]dB SAR Improvement:[-13.491405]dB
+SDR:[-2.6049232]dB SIR:[59.694473]dB SAR:[-2.6049159]dB File:speech_10.wav
+SDR:[-10.68647]dB SIR:[59.459656]dB SAR:[-10.686465]dB File:GANspeech_10.wav
+SDR Improvement:[-8.081547]dB SIR Improvement:[-0.2348175]dB SAR Improvement:[-8.08155]dB
+SDR:[-0.06210468]dB SIR:[inf]dB SAR:[-0.0621057]dB File:speech_100.wav
+SDR:[-13.622305]dB SIR:[inf]dB SAR:[-13.622305]dB File:GANspeech_100.wav
+SDR Improvement:[-13.560201]dB SIR Improvement:[nan]dB SAR Improvement:[-13.560199]dB
+SDR:[-4.6568255]dB SIR:[inf]dB SAR:[-4.6568346]dB File:speech_1000.wav
+SDR:[-13.253875]dB SIR:[inf]dB SAR:[-13.253881]dB File:GANspeech_1000.wav
+SDR Improvement:[-8.59705]dB SIR Improvement:[nan]dB SAR Improvement:[-8.597047]dB
+SDR:[0.13264789]dB SIR:[60.205994]dB SAR:[0.13265616]dB File:speech_1001.wav
+SDR:[-11.859634]dB SIR:[60.205994]dB SAR:[-11.859631]dB File:GANspeech_1001.wav
+SDR Improvement:[-11.992282]dB SIR Improvement:[0.]dB SAR Improvement:[-11.992287]dB
+SDR:[2.6763406]dB SIR:[58.26779]dB SAR:[2.6763592]dB File:speech_1002.wav
+SDR:[-9.348205]dB SIR:[58.629913]dB SAR:[-9.348198]dB File:GANspeech_1002.wav
+SDR Improvement:[-12.024546]dB SIR Improvement:[0.36212158]dB SAR Improvement:[-12.024557]dB
+SDR:[-4.872793]dB SIR:[62.247196]dB SAR:[-4.87279]dB File:speech_1003.wav
+SDR:[-12.221323]dB SIR:[61.833267]dB SAR:[-12.221321]dB File:GANspeech_1003.wav
+SDR Improvement:[-7.34853]dB SIR Improvement:[-0.413929]dB SAR Improvement:[-7.3485312]dB
+SDR:[-3.4522102]dB SIR:[56.226585]dB SAR:[-3.4521947]dB File:speech_1004.wav
+SDR:[-9.543461]dB SIR:[56.226585]dB SAR:[-9.543449]dB File:GANspeech_1004.wav
+SDR Improvement:[-6.0912504]dB SIR Improvement:[0.]dB SAR Improvement:[-6.0912547]dB
+SDR:[3.1819334]dB SIR:[60.205994]dB SAR:[3.1819463]dB File:speech_1005.wav
+SDR:[-11.094303]dB SIR:[59.942703]dB SAR:[-11.094298]dB File:GANspeech_1005.wav
+SDR Improvement:[-14.276237]dB SIR Improvement:[-0.2632904]dB SAR Improvement:[-14.276245]dB
+SDR:[-7.38155]dB SIR:[56.684166]dB SAR:[-7.3815393]dB File:speech_1006.wav
+SDR:[-12.673593]dB SIR:[56.80651]dB SAR:[-12.673583]dB File:GANspeech_1006.wav
+SDR Improvement:[-5.2920427]dB SIR Improvement:[0.12234497]dB SAR Improvement:[-5.2920437]dB
