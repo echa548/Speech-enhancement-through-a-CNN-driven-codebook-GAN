@@ -3,8 +3,11 @@ import numpy as np
 from tensorflow import keras
 from keras import layers
 import os
+import re
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
-os.chdir('C:/Users/Timothy/Documents/GitHub/COPY_OF_CURRENT_VER/Spectogram')
 
 # Generator model
 def build_generator():
@@ -65,6 +68,11 @@ class WGANLP(tf.keras.Model):
     def train_discriminator_step(self, real_samples, noise):
         with tf.GradientTape() as tape:
             # Generate fake sample
+            # Gaussian_mean = 0
+            # Gaussian_std = 0.02129166666666667
+            # Gaussian_shape = tf.shape(noise)
+            # Gaussian_noise = tf.random.normal(shape=Gaussian_shape, mean=Gaussian_mean, stddev=Gaussian_std, dtype=tf.float32)
+            # noise = noise + Gaussian_noise
             generated_samples = self.generator(noise)
 
             # Transform the generated samples
@@ -94,6 +102,11 @@ class WGANLP(tf.keras.Model):
 
     def train_generator_step(self, noise):
         with tf.GradientTape() as tape:
+            # Gaussian_mean = 0
+            # Gaussian_std = 0.02129166666666667
+            # Gaussian_shape = tf.shape(noise)
+            # Gaussian_noise = tf.random.normal(shape=Gaussian_shape, mean=Gaussian_mean, stddev=Gaussian_std, dtype=tf.float32)
+            # noise = noise + Gaussian_noise
             generated_samples = self.generator(noise)
             transformed_samples = self.transform_fn(generated_samples, noise)
             g_predictions = self.discriminator(transformed_samples)
@@ -131,11 +144,11 @@ def transform_fn(samples, noisemix):
         Generated_sample = Generated_sample.reshape((1024, 9))
         noise_sample = Numpy_noisemix_sample[Tensor, :]
         noise_sample = noise_sample.reshape(1024)
-        Noise_inverse = np.linalg.pinv(Generated_sample, rcond=1e-15)
+        Noise_inverse = np.linalg.pinv(np.abs(Generated_sample), rcond=1e-15)
         Noise_coeffs = np.transpose(Noise_inverse * noise_sample)
         #print(np.shape(Noise_coeffs))
        # Projection = np.zeros((1024,9))
-        Projection = (Noise_coeffs * Generated_sample)
+        Projection = (Noise_coeffs * np.abs(Generated_sample))
         Projection = np.asarray(Projection).clip(min=0)
         for Freq_bin in range(0, 1024):
             Estimated_noise_PSD[Tensor, Freq_bin] = np.sum(Projection[Freq_bin, :])
@@ -155,38 +168,50 @@ wganlp = WGANLP(generator, discriminator, transform_fn)
 wganlp.compile(
     g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
     d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
-    lambda_penalty=1.0
+    lambda_penalty=10
 )
 
 # Generate real samples with shape (data_point, 1024)
 real_samples = tf.convert_to_tensor(np.load('Clean_PSD.npy'), dtype=tf.float32)
 # Generate user-defined noise with shape (data_point, 1024)
 noise = tf.convert_to_tensor(np.load('Mixture_PSD.npy'), dtype=tf.float32)
+# a = np.load('Mixture_PSD.npy')
+# a_max = np.max(a)
+# a_min = np.min(a)
 
+# print(a_max)
+# print(a_min)
 # Train the WGAN-LP
 batch_size = 64
 num_batches = len(real_samples) // batch_size
-save_interval = 100  # Interval for saving the model
+save_interval = 10  # Interval for saving the model
 discriminator_iterations = 5  # Number of times to train the discriminator per epoch
-saved_models = [file for file in os.listdir('.') if file.startswith('trained_wganlp_model_epoch_Dense_500')]
-if saved_models:
-    saved_models.sort()
-    latest_model = saved_models[-1]
-    start_epoch = int(latest_model.split('_')[-1]) + 1
-    wganlp.generator = tf.keras.models.load_model(latest_model)
 
-    # Compile the generator and discriminator (critic)
-    wganlp.generator.compile(
-        optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
-        
-    )
+current_epoch = 0
+generator_model_path = "trained_wganlp_model_epoch_Dense_10_generator"
+discriminator_model_path = "trained_wganlp_model_epoch_Dense_10_discriminator"
 
-    wganlp.discriminator.compile(
-        optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
-        
-    )
+if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_path):
+    saved_generator = tf.saved_model.load(generator_model_path)
+    saved_discriminator = tf.saved_model.load(discriminator_model_path)
+    
+    if saved_generator and saved_discriminator:
+        print("Loaded saved generator and discriminator models.")
+        wganlp.generator = saved_generator
+        wganlp.discriminator = saved_discriminator
+        wganlp.compile(
+            g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
+            d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
+            lambda_penalty=10)
+        #wganlp.save(f"trained_wganlp_model_epoch_Dense_20")
+        if os.path.exists("current_epoch.txt"):
+            with open("current_epoch.txt", "r") as epoch_file:
+                current_epoch = int(epoch_file.read())
+                print(f"Resuming training from epoch {current_epoch}")
+else:
+    print("No saved generator and discriminator models found.")
 
-for epoch in range(1500):
+for epoch in range(current_epoch,1500):
     print(f"Epoch {epoch + 1}/{1500}")
 
     for _ in range(discriminator_iterations):
@@ -198,6 +223,7 @@ for epoch in range(1500):
             noise_batch = noise[start:end]
 
             losses = wganlp.train_discriminator_step(real_batch, noise_batch)
+            print('Epoch:' + str(epoch+1),  end =' ')
             print(losses)  # Print the losses for each batch
 
     # Train the generator
@@ -208,9 +234,33 @@ for epoch in range(1500):
         noise_batch = noise[start:end]
 
         losses = wganlp.train_generator_step(noise_batch)
+        print('Epoch:' + str(epoch+1),  end =' ')
         print(losses)  # Print the losses for each batch
+        
 
     if (epoch + 1) % save_interval == 0:
-        wganlp.save(f"trained_wganlp_model_epoch_Dense_{epoch + 1}")
+        model_filename = f"trained_wganlp_model_epoch_Dense_{epoch + 1}"
 
-wganlp.save("trained_wganlp_model")
+        checkpoint = tf.train.Checkpoint(
+            generator_optimizer=wganlp.g_optimizer,
+            discriminator_optimizer=wganlp.d_optimizer,
+            generator=wganlp.generator,
+            discriminator=wganlp.discriminator
+        )
+        
+        checkpoint.save(f"{model_filename}_ckpt")
+        current_epoch = epoch + 1
+        with open("current_epoch.txt", "w") as epoch_file:
+            epoch_file.write(str(current_epoch))
+
+        # Save the generator and discriminator models using tf.saved_model.save
+        tf.saved_model.save(wganlp.generator, f"{model_filename}_generator")
+        tf.saved_model.save(wganlp.discriminator, f"{model_filename}_discriminator")
+        #wganlp.save(f"trained_wganlp_model_epoch_Dense_{epoch + 1}")
+        print("Models saved.")
+
+
+# Save the final generator and discriminator models
+tf.saved_model.save(wganlp.generator, "trained_wganlp_model_final_generator")
+tf.saved_model.save(wganlp.discriminator, "trained_wganlp_model_final_discriminator")
+

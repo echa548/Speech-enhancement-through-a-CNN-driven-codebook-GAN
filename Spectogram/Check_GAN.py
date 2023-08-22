@@ -141,7 +141,7 @@ for No_of_data in range (0,10):
 
 
      Current_frame_weiner_coeffs = Estimated_speech_PSD/(Noise_suppression*Estimated_noise_PSD+Speech_emphasis*Estimated_speech_PSD)
-     Current_frame_weiner_coeffs_GAN = Estimated_speech_PSD/(Noise_suppression*GAN_estimate+Speech_emphasis*Estimated_speech_PSD)
+     Current_frame_weiner_coeffs_GAN = Estimated_speech_PSD/(400*Noise_suppression*GAN_estimate+Speech_emphasis*Estimated_speech_PSD)
      De_noised_frame = (Current_frame_weiner_coeffs**Weiner_scaling)*FFT_of_windowed_signal
      De_noised_frame_GAN = (Current_frame_weiner_coeffs_GAN**Weiner_scaling)*FFT_of_windowed_signal
      FFT_to_audio = np.fft.ifft(De_noised_frame)
