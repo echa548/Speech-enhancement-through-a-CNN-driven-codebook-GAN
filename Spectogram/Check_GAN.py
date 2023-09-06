@@ -26,8 +26,7 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 Noise_gan = tf.saved_model.load('Noise_PSD_Generator_epoch_73')
-Speech_gan = tf.saved_model.load('trained_wganlp_model_epoch_Dense_4_generator') 
-#print(gan.summary())
+Speech_gan = tf.saved_model.load('trained_wganlp_model_epoch_Dense_4_generator')
 N_fft = 1024
 
 text_file = open("Noise_list.txt", "r")  #make sure this is at the same location as this file
@@ -50,7 +49,7 @@ for frequency_bin in range (0,len(lines)):
 
 for frequency_bin in range (0,len(speech_lines)):
   string_list = speech_lines[frequency_bin].split()
-  #print(string_list)
+
   for component in range (0, len(string_list)):
    if string_list[component] == "nan":
     Speech_codebook2[frequency_bin,component] = 0
@@ -64,7 +63,7 @@ def Hann_window_a_signal(Windowed_data):
  Hann_window = sps.windows.hann(len(Windowed_data))
  Hann_Windowed_data = Hann_window*Windowed_data
  padded_signal = np.pad(Hann_Windowed_data,(0,512), 'constant')
- #print(len(padded_signal))
+
  Windowed_data_fft = np.fft.fft(padded_signal,1024)
  return Windowed_data_fft
 
@@ -112,6 +111,12 @@ for folder in range (0,len(targets)):
  path = os.path.join('Filter_outputs/Perfect',directory) 
  os.makedirs(path, exist_ok=True)
 
+for folder in range (0,len(targets)):
+ directory = str(targets[folder])+'dB'
+ path = os.path.join('Filter_outputs/GAN_Noise_GMM_speech',directory) 
+ os.makedirs(path, exist_ok=True)
+
+
 for target_db in range (0,len(targets)):
 
  Path_of_noisy_mixture = 'SNR_seg/'+str(targets[target_db])+'dB'+'/'
@@ -152,12 +157,12 @@ for target_db in range (0,len(targets)):
      GAN_noise_estimate = np.zeros(N_fft)
      GAN_speech_estimate = np.zeros(N_fft)
      FFT_of_windowed_signal = Hann_window_a_signal(Rectangular_windowed_signal)
-     #print(len(FFT_of_windowed_signal))
+
      Hann_window = sps.windows.hann(len(Rectangular_windowed_signal))
      PSD_window_scaling = np.sum(Hann_window**2)
      PSD_of_windowed_signal = (np.abs(FFT_of_windowed_signal)**2)/(samplerate*PSD_window_scaling)
 
-     #Implement Mel scale
+
 
      Tensor_PSD = tf.convert_to_tensor(PSD_of_windowed_signal.reshape(1,1024), tf.float32)
      
@@ -165,11 +170,9 @@ for target_db in range (0,len(targets)):
      Generated_codebook = Generated_codebook.numpy()
      Generated_codebook_reshaped = np.abs((Generated_codebook.reshape(1024,9)))
      
-
      Generated_speech_codebook = Speech_gan(Tensor_PSD)
      Generated_speech_codebook = Generated_speech_codebook.numpy()
-     Generated_speech_codebook_reshaped = np.abs((Generated_speech_codebook.reshape(1024,6)))
-
+     Generated_speech_codebook_reshaped = np.abs((Generated_speech_codebook.reshape(1024,6))) #TODO
 
      Generated_codebook_inverse = np.linalg.pinv(Generated_codebook_reshaped, rcond=1e-15)
      Generated_coeffs = Generated_codebook_inverse*PSD_of_windowed_signal
@@ -184,10 +187,6 @@ for target_db in range (0,len(targets)):
      GAN_speech_codebook = GAN_speech_codebook.clip(min=0)
 
 
-
-
-
-
      Noise_inverse = np.linalg.pinv(Noise_codebook2, rcond=1e-15)
      Noise_coeffs = Noise_inverse*PSD_of_windowed_signal
      Speech_inverse = np.linalg.pinv(Speech_codebook2, rcond=1e-15)
@@ -198,9 +197,7 @@ for target_db in range (0,len(targets)):
      Estimated_speech_PSD_codebook = Estimated_speech_PSD_codebook.clip(min=0)
      Estimated_noise_PSD_codebook = Noise_coeffs*Noise_codebook2
      Estimated_noise_PSD_codebook = Estimated_noise_PSD_codebook.clip(min=0)
-     myFile = open('Noise_code.txt', 'r+')
-     np.savetxt(myFile, Estimated_noise_PSD_codebook)
-     myFile.close()
+
      
      Rectangular_windowed_real_signal = real_noise[0+128*No_of_overlaps:512+128*No_of_overlaps]
      FFT_of_real_windowed_signal = Hann_window_a_signal(Rectangular_windowed_real_signal)
@@ -213,24 +210,24 @@ for target_db in range (0,len(targets)):
 
      for Freq_bin in range (0,N_fft):
        GAN_noise_estimate[Freq_bin]=np.sum(GAN_noise_codebook[Freq_bin,:])
-     #print(np.shape(GAN_estimate))
+ 
      for Freq_bin in range (0,N_fft):
        GAN_speech_estimate[Freq_bin]=np.sum(GAN_speech_codebook[Freq_bin,:])
 
      for Freq_bin in range (0,N_fft):
        Estimated_speech_PSD[Freq_bin]=np.sum(Estimated_speech_PSD_codebook[Freq_bin,:])
        Estimated_noise_PSD[Freq_bin]=np.sum(Estimated_noise_PSD_codebook[Freq_bin,:])
-     #print(np.shape(Estimated_noise_PSD))
+     
      Noise_suppression = 1 #These three value control the balance between noise suppression and the quality of the recovered speech
      Speech_emphasis = 1  
      Weiner_scaling = 1
 
-     #Normalize PSD to one
+  
 
      GAN_noise_estimate[512:1024]=np.flip(GAN_noise_estimate[0:512])
      Estimated_speech_PSD[512:1024]= np.flip(Estimated_speech_PSD[0:512])
      GAN_speech_estimate[512:1024] = np.flip(GAN_speech_estimate[0:512])
-     scalar_factor_noise = sum([psd_value for psd_value in GAN_noise_estimate]) #This code causes silence on some outputs. NVM I'm retarded. Try HIGHER SNR.
+     scalar_factor_noise = sum([psd_value for psd_value in GAN_noise_estimate]) 
      scalar_factor_speech = sum([psd_value for psd_value in GAN_speech_estimate])
      GAN_noise_estimate_normalised = GAN_noise_estimate/scalar_factor_noise
      GAN_speech_estimate_normalised = GAN_speech_estimate/scalar_factor_speech
@@ -253,43 +250,36 @@ for target_db in range (0,len(targets)):
      PSD_of_real_windowed_speech_signal_normalised = PSD_of_real_windowed_speech_signal/scalar_factor_speech
 
      PSD_of_windowed_signal[512:1024]= np.flip(PSD_of_windowed_signal[0:512])
-     scalar_wat = sum([psd_value for psd_value in PSD_of_windowed_signal])
+     scalar_wat = sum([psd_value for psd_value in PSD_of_windowed_signal])/2
      PSD_of_estimate = PSD_of_windowed_signal/scalar_wat
      
 
-
      Current_frame_weiner_coeffs = Estimated_speech_PSD_normalised/(Noise_suppression*Estimated_noise_PSD_normalised+Speech_emphasis*Estimated_speech_PSD_normalised)
      Current_frame_weiner_coeffs_GAN =GAN_speech_estimate_normalised/(GAN_noise_estimate_normalised+GAN_speech_estimate_normalised)
-     #Current_frame_weiner_coeffs_GAN =Estimated_speech_PSD_normalised/(GAN_noise_estimate_normalised+Estimated_speech_PSD_normalised)
-     Current_frame_weiner_coeffs_GAN_noise_only =PSD_of_real_windowed_speech_signal_normalised/(GAN_noise_estimate_normalised+PSD_of_real_windowed_speech_signal_normalised)
+     Current_frame_weiner_coeffs_GAN_noise_GMM_speech = Estimated_speech_PSD_normalised/(GAN_noise_estimate_normalised+Estimated_speech_PSD_normalised)
      Current_frame_weiner_coeffs_perfect = PSD_of_real_windowed_speech_signal_normalised/(normalised_noise+PSD_of_real_windowed_speech_signal_normalised)
-     
-     
+
      De_noised_frame = (Current_frame_weiner_coeffs**Weiner_scaling)*FFT_of_windowed_signal
      De_noised_frame_GAN = (Current_frame_weiner_coeffs_GAN**Weiner_scaling)*FFT_of_windowed_signal
-     De_noised_frame_GAN_noise_only = (Current_frame_weiner_coeffs_GAN_noise_only**Weiner_scaling)*FFT_of_windowed_signal
      De_noised_frame_perfect = Current_frame_weiner_coeffs_perfect*FFT_of_windowed_signal
-
-
+     De_noised_frame_GAN_noise_GMM_speech = Current_frame_weiner_coeffs_GAN_noise_GMM_speech*FFT_of_windowed_signal
 
      FFT_to_audio = np.fft.ifft(De_noised_frame)
      FFT_to_audio_GAN = np.fft.ifft(De_noised_frame_GAN)
-     FFT_to_audio_GAN_noise_only = np.fft.ifft(De_noised_frame_GAN_noise_only)
+     FFT_to_audio_GAN_noise_GMM_speech = np.fft.ifft(De_noised_frame_GAN_noise_GMM_speech)
      FFT_to_audio_perfect = np.fft.ifft(De_noised_frame_perfect)
 
-     #speech_try = 1-GAN_noise_estimate_normalised
-     #print(sum(speech_try))
 
      audio[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio[0:512] #recover only the windowed signal and not the zero-pad
      audio_GAN[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio_GAN[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio_GAN[0:512] #recover only the windowed signal and not the zero-pad
-     audio_GAN_Noise_only[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio_GAN_Noise_only[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio_GAN_noise_only[0:512]
+     audio_GAN_Noise_only[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio_GAN_Noise_only[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio_GAN_noise_GMM_speech[0:512]
      audio_perfect[0+128*No_of_overlaps:512+128*No_of_overlaps] = audio_perfect[0+128*No_of_overlaps:512+128*No_of_overlaps]+FFT_to_audio_perfect[0:512] #recover only the windowed signal and not the zero-pad
      
 
     
-    #  plt.plot(f[0:512],200*GAN_noise_estimate[0:512], label = 'GAN noise')
+    #  plt.plot(f[0:512],155*GAN_noise_estimate[0:512], label = 'GAN noise')
     #  plt.plot(f[0:512],2*PSD_of_real_windowed_signal[0:512], label = 'Real noise')
-    #  #plt.plot(f[0:512],2*Estimated_noise_PSD[0:512], label = 'GMM noise')
+    #  plt.plot(f[0:512],2*PSD_of_windowed_signal[0:512], label = 'Mixture')
     #  plt.xlabel('log Frequency (Hz)')
     #  plt.ylabel("log Power Spectral Density (dB/Hz)")
     #  plt.title('GAN vs Real vs GMM noise PSDs')
@@ -301,10 +291,11 @@ for target_db in range (0,len(targets)):
     #  plt.close()
 
     
-
-    #  plt.plot(f[0:512],2*GAN_speech_estimate[0:512], label = 'GAN speech')
+     
+     #plt.plot(f[0:512],2*ESt[0:512], label = 'GAN speech')
     #  plt.plot(f[0:512],2*PSD_of_real_windowed_speech_signal[0:512], label = 'Real speech')
     #  plt.plot(f[0:512],2*Estimated_speech_PSD[0:512], label = 'GMM speech')
+    #  plt.plot(f[0:512],2*PSD_of_windowed_signal[0:512], label = 'Mixture')
     #  plt.xlabel('log Frequency (Hz)')
     #  plt.ylabel("log Power Spectral Density (dB/Hz)")
     #  plt.title('GAN vs Real vs GMM speech PSDs')
@@ -335,7 +326,7 @@ for target_db in range (0,len(targets)):
 
    sf.write('Filter_outputs/Wiener/'+str(targets[target_db])+'dB/'+directories[No_of_data], audio, 16000, 'PCM_16')
    sf.write('Filter_outputs/GAN/'+str(targets[target_db])+'dB/'+directories[No_of_data], audio_GAN, 16000, 'PCM_16')
-   sf.write('Filter_outputs/GAN_Noise_only/'+str(targets[target_db])+'dB/'+directories[No_of_data], audio_GAN_Noise_only, 16000, 'PCM_16')
+   sf.write('Filter_outputs/GAN_Noise_GMM_speech/'+str(targets[target_db])+'dB/'+directories[No_of_data], audio_GAN_Noise_only, 16000, 'PCM_16')
    sf.write('Filter_outputs/Perfect/'+str(targets[target_db])+'dB/'+directories[No_of_data], audio_perfect, 16000, 'PCM_16')
 
 
