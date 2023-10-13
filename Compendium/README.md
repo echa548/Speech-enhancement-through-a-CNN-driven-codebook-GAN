@@ -6,6 +6,10 @@ Team members: Edward Chan and Timothy Aguana Cabrera
 
 Abstract:
 
+## Structure
+The repository has the following structure
+- [Creating-Dataset](Creating-Dataset):
+
 ## Getting Started
 
 ## Packages
