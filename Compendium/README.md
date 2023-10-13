@@ -4,7 +4,9 @@
 
 Team members: Edward Chan and Timothy Aguana Cabrera
 
-Abstract:
+Abstract: This contribution addresses enhancing speech quality in noisy environments with low signal-to-noise ratios (SNR). The approach consists of two key components. First, it leverages codebooks derived from Gaussian mixture models (GMMs) and a Wasserstein Generative Adversarial Network (WGAN) to generate time-varying spectral candidates that closely resemble noise spectra. While the estimation of noise spectra is accurate, the estimation of speech spectra needs to improve, resulting in distorted and unintelligible Wiener-filtered mixtures.
+In the realm of audio signal processing, low SNR leads to significantly quieter speech, posing a problem. To tackle this issue, the paper proposes an iterative learning approach that combines two machine learning algorithms for speech enhancement and classification in noisy mixtures. The first algorithm employs a WGAN for end-to-end learning to generate noise spectra that can be used to create enhanced speech. Simultaneously, considering SNR levels, a convolutional neural network (CNN) uses the spectrogram representation of the estimated clean speech to classify between clean and noisy speech.
+The primary objective of this paper is to explore whether improvement to the performance of the codebook-based approach can be used with SNR levels to indicate improved speech quality and intelligibility. To evaluate the algorithm's performance, the proposed method utilises computational matrices, including perceptual evaluation of speech (PESQ), short-time objective intelligibility (STOI), and signal distortion ratio (SDR).
 
 ## Structure
 The repository has the following structure
@@ -81,6 +83,13 @@ The packages that we used:
 - With the directory created add your desired noisy mixture and clean speech to folders in `path_eval = "Evaluation1"` named `clean_path = path_eval + "/clean"` and `noisy_path = path_eval + "/noisy"`
 - Make sure the name of the audio added is speech_"number".wav the same as the create_dataset convention (With the text inside "" being changed to a number)
 - Run Step 4
+
+## Results
+CNN classification [results](Result/CNN-classification-results).
+
+GAN speech enhancement [results](Result/GAN-results).
+
+To generate the evaluation results and enhanced speech use [performing_evaluation.ipynb](Evaluation). Our results using the default settings of the CNN and GAN models outputted these [Results](Result/Overall-system-results).
 
 ## Future Improvements
 
