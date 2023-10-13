@@ -24,10 +24,10 @@ The repository has the following structure
 ## Getting Started
 
 ### Creating Dataset
-- Go to [create-dataset.pynb](Creating-Dataset)
-- Open create-dataset.pynb
+- Go to [Creating-Dataset](Creating-Dataset)
+- Open create-dataset.ipynb
 - Download the [speech dataset](https://www.kaggle.com/datasets/showmik50/vctk-dataset) and [noise dataset](https://www.kaggle.com/datasets/chrisfilo/demand)
-- Extract these folders place them in [Dataset](Dataset) (Create a new folder called "noisy" and extract the noisy dataset in the folder)
+- Extract these folders place them in [Creating-Dataset](Creating-Dataset) (Create a new folder called "noisy" and extract the noisy dataset in the folder)
 - In Step 5 change the number of samples to create to you desired value `n = 1500`
 - Then Run All
 
