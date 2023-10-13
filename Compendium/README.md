@@ -19,7 +19,34 @@ The repository has the following structure
 - [Results](Results): CNN classification results, GAN results and the overall system evaluation results
 - [Seminar-Presentation](Seminar-Presentation): The presentation slides for the mid-year seminar
 
+## Getting Started
+1. Install Python version 3.8.0
+2. Clone the repository
+3. Run `pip install -r requirements.txt` in terminal (use correct cloned directory to install required packages)
+
 ## Packages
+We used Python version 3.8.0 and we used pip version 23.2.1
+The packages that we used:
+| Package Name | Version |
+| --- | --- |
+| Torch | 2.0.1 |
+| Torchaudio | 2.0.2 |
+| Librosa | 0.10.1 |
+| Scipy | 1.10.1 |
+| Numpy | 1.23.4 |
+| Pydub| 0.25.1 |
+| Soundfile | 0.12.1 |
+| Openpyxl | 3.1.2 |
+| Xlsxwriter | 3.1.2|
+| Matplotlib | 3.7.2 |
+| Tensorflow | 2.8.0 |
+| Keras | 2.8.0 |
+| Scikit-learn | 1.3.0 |
+| Seaborn | 0.12.2 |
+| Pesq | 0.0.4 |
+| Pystoi | 0.3.3 |
+| Mir_eval | 0.7 |
+
 
 ## Setup
 
