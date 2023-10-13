@@ -19,9 +19,19 @@ The repository has the following structure
 - [Results](Results): CNN classification results, GAN results and the overall system evaluation results
 - [Seminar-Presentation](Seminar-Presentation): The presentation slides for the mid-year seminar
 
+## Packages
+
 ## Getting Started
 
-## Packages
+### Creating Dataset
+- Go to [create-dataset.pynb](Creating-Dataset)
+- Download the [speech dataset](https://www.kaggle.com/datasets/showmik50/vctk-dataset) and [noise dataset](https://www.kaggle.com/datasets/chrisfilo/demand)
+- Extract these folders place them in [Dataset](Dataset) (Create a new folder called "noisy" and extract the noisy dataset in the folder)
+- In Step 5 change the number of samples to create to you desired value `n = 1500`
+
+### CNN Classification Model Setup
+
+### GAN Model Setup
 
 ## Future Improvements
 
