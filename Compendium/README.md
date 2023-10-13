@@ -80,6 +80,11 @@ The packages that we used:
 - Make sure the name of the audio added is speech_"number".wav the same as the create_dataset convention (With the text inside "" being changed to a number)
 - Run Step 4
 
+## Results
+CNN classification [results](Result/CNN-classification-results)
+GAN speech enhancement [results](Result/GAN-results)
+To generate the evaluation results and enhanced speech use [performing_evaluation.ipynb](Evaluation). Our results using the default settings of the CNN and GAN models outputted these [Results](Result/Overall-system-results)
+
 ## Future Improvements
 
 ## Key Notes
