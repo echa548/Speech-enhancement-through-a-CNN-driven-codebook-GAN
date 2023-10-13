@@ -25,13 +25,22 @@ The repository has the following structure
 
 ### Creating Dataset
 - Go to [create-dataset.pynb](Creating-Dataset)
+- Open create-dataset.pynb
 - Download the [speech dataset](https://www.kaggle.com/datasets/showmik50/vctk-dataset) and [noise dataset](https://www.kaggle.com/datasets/chrisfilo/demand)
 - Extract these folders place them in [Dataset](Dataset) (Create a new folder called "noisy" and extract the noisy dataset in the folder)
 - In Step 5 change the number of samples to create to you desired value `n = 1500`
+- Then Run All
 
-### CNN Classification Model Setup
+### Generating CNN Classification Model
+- Go to [Classification-Setup](Models-Setup/Classification-Setup)
+- Open class_model.ipynb
+- In Step 4 change the batch_size and epoch number to your desired value `batch_size=10, epochs=20`
+- Change model name in Step 6 to your desired name `model.save(model_path + 'my_model.h5')`
+- Run from Step 1 to Step 6 to save model (Step 7 loads the model and predicts the SNR levels for all wav files in `path_test_dataset = "../../Dataset/predict_dataset/"`)
 
-### GAN Model Setup
+### Generating GAN Speech Enhancement Model
+
+### Perform Evaluation
 
 ## Future Improvements
 
