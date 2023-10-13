@@ -21,7 +21,7 @@ The repository has the following structure
 
 ## Packages
 
-## Getting Started
+## Setup
 
 ### Creating Dataset
 - Go to [Creating-Dataset](Creating-Dataset)
@@ -41,6 +41,15 @@ The repository has the following structure
 ### Generating GAN Speech Enhancement Model
 
 ### Perform Evaluation
+- Go to [Evaluation](Evaluation)
+- Open performing_evaluation.ipynb
+- If need be change directory for CNN model in Step 1 `cnn_model = tf.keras.models.load_model('../Models/Classification Models/my_model.h5')`
+- If need be change directory for GAN model in Step 1 `Noise_gan = tf.saved_model.load('../Models/GAN Models/Full_Curriculum_4_generator')`
+- You can also change the directory for where the evaluation is saved in Step 3 `path_eval = "Evaluation1"`
+- Run Step 1 to 3 to create a directory for where the evaluation will be performed
+- With the directory created add your desired noisy mixture and clean speech to folders in `path_eval = "Evaluation1"` named `clean_path = path_eval + "/clean"` and `noisy_path = path_eval + "/noisy"`
+- Make sure the name of the audio added is speech_"number".wav the same as the create_dataset convention (With the text inside "" being changed to a number)
+- Run Step 4
 
 ## Future Improvements
 
