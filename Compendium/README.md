@@ -8,7 +8,12 @@ Abstract:
 
 ## Structure
 The repository has the following structure
-- [Creating-Dataset](Creating-Dataset):
+- [Creating-Dataset](Creating-Dataset): Contains a python program used to generate the dataset to train and test models
+- [Evaluation](Evaluation): Contains a python program used to perform speech enhancement and generate the evaluation of one or more audio wav files
+- [Exhibition-Day-Presentation](Exhibition-Day-Presentation): Contains the exhibition presentation and poster
+- [Models-Setup](Models-Setup): Contains python code for both training both the GAN and the CNN models
+- [Others](Others): Stores progression documentation, presentation and flowcharts
+- [Results](Results): CNN classification results, GAN results and the overall system evaluation results
 
 ## Getting Started
 
