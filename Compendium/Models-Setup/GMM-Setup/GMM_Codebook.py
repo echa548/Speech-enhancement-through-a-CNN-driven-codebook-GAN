@@ -25,7 +25,7 @@ from scipy.special import logsumexp
 #and assists with convergence (Provided it can be approximated through a sum of Gaussians).
 #After training, the means of the GMM are saved in a TXT file for usage with a GAN model.
 
-os.chdir('..')
+os.chdir('../..')
 samplerate =0
 Path_to_noise = 'Dataset/dataset/noisy'
 
@@ -226,6 +226,10 @@ def trainGMMspeech(Components,iterations,seed):
    for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
       pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
    
+ myFile = open('Others/Creating-Figures/LTA_PSD_SPEECH.txt', 'r+')
+ np.savetxt(myFile, pre_codebook_array)
+ myFile.close()
+ print('speech long term averages logged!')
  for Frequency_bin in range (0,N_fft):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 
     Transpose = np.transpose(Frequency_bin_accross_all_data)
@@ -279,10 +283,10 @@ def trainGMMnoise(Components,iterations,seed):
    for Frequency_bin in range (0,np.size(PSD_of_windowed_signal)):
       pre_codebook_array[Frequency_bin,No_of_data] = Mean_PSD_val[Frequency_bin]
  
- myFile = open('Noise_check.txt', 'r+')
+ myFile = open('Others/Creating-Figures/LTA_PSD_NOISE.txt', 'r+')
  np.savetxt(myFile, pre_codebook_array)
  myFile.close()
- print('done!')
+ print('noise long term averages logged!')
 
  for Frequency_bin in range (0,N_fft):
     Frequency_bin_accross_all_data = pre_codebook_array[Frequency_bin,:] 

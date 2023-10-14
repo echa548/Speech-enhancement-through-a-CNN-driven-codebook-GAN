@@ -12,7 +12,7 @@ import random
 # os.chdir(dname)
 
 #This file will make the necessary training data for the Noise GAN.
-os.chdir('..')
+os.chdir('../..')
 
 N_fft = 1024
 def Hann_window_a_signal(Windowed_data):

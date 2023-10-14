@@ -13,7 +13,7 @@ torch.set_num_threads(1)
 #ATTENTION!
 #This file applies the VAD_SNR definition.
 
-os.chdir('..')
+os.chdir('../..')
 
 model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad')
 (get_speech_timestamps,

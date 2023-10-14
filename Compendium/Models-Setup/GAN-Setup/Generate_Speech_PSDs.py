@@ -12,7 +12,7 @@ import random
 # os.chdir(dname)
 
 
-os.chdir('..')
+os.chdir('../..')
 #This file will make the training data for the GANs that is trained to generate speech.
 
 N_fft = 1024
