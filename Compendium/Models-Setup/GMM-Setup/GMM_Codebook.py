@@ -13,7 +13,9 @@ from scipy.special import logsumexp
 #This file implements a sieved univariate Gaussian Mixture Model (GMM) per frequency bin. This does not rely on any guesses on initial parameters.
 #and assists with convergence (Provided it can be approximated through a sum of Gaussians).
 #After training, the means of the GMM are saved in a TXT file for usage with a GAN model.
-
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 samplerate =0
 Path_to_noise = 'Dataset/dataset/noisy'

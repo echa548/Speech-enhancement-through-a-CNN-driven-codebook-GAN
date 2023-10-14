@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import scipy.stats as ss
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 
 #ATTENTION!!!!! If switching from ploting the densities of noise to speech, please copy paste the folder which contains the previously generated

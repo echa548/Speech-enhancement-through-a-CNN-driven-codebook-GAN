@@ -2,9 +2,13 @@ import os
 import torch
 
 torch.set_num_threads(1) #Change to the desired number of CPU threads to utilise.
-os.chdir('..')
-os.makedirs('Models-Setup/GMM-Setup/VAD_merged_speech',exist_ok=True)
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+os.chdir('../..')
 
+os.makedirs('Models-Setup/GMM-Setup/VAD_merged_speech',exist_ok=True)
+print(os. getcwd())
 #This file eliminates the silent sections of speech and concatenates the portions.
 model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad')
 (get_speech_timestamps,

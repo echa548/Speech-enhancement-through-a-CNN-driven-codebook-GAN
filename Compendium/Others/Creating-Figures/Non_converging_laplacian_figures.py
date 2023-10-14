@@ -3,6 +3,9 @@ import numpy as np
 import os
 from scipy.stats import expon
 from scipy.optimize import curve_fit
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 #This file replaces the non-converging GMM frequency bins with the default calculation of statistical mean and plots
 #the sample data distribution of the non-converging GMMs.
