@@ -8,14 +8,14 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-# Generator model
+
 def build_generator():
     model = keras.Sequential()
     model.add(layers.Dense(1024, input_shape=(1024,)))
     model.add(layers.Dense(2048, activation='relu'))
     model.add(layers.Dense(4096, activation='relu'))
     model.add(layers.Dense(8192, activation='relu'))
-    model.add(layers.Dense(16384, activation='relu'))  # Adding an additional dense layer
+    model.add(layers.Dense(16384, activation='relu'))  
     model.add(layers.Dense(1024 * 9))
     model.add(layers.Reshape((1024, 9)))
     return model
@@ -33,7 +33,7 @@ def build_discriminator():
     model.add(layers.Dense(1))
     return model
 
-# Define the WGAN-LP
+# Define the WGAN-GP
 class WGANLP(tf.keras.Model):
     def __init__(self, generator, discriminator, transform_fn):
         super(WGANLP, self).__init__()
@@ -71,6 +71,9 @@ class WGANLP(tf.keras.Model):
             generated_samples = self.generator(noise)
 
             # Transform the generated samples
+            # This scales the transformed output to have the same energy as that of the paired real counterpart.
+            # Basically, what this does is that it makes the generator focus on getting the right 'shape' of the PSD
+            # with no regard to the undershooting issue.            
             transformed_samples = self.transform_fn(generated_samples, noise, observations)
             # Train the discriminator
             sum_real_samples = tf.reduce_sum(real_samples, axis=-1, keepdims=True)
@@ -85,11 +88,13 @@ class WGANLP(tf.keras.Model):
             # Compute the Wasserstein distance (discriminator loss)
             d_loss = tf.reduce_mean(d_predictions_fake) - tf.reduce_mean(d_predictions_real)
 
-            # Compute the gradient penalty
+            # Add gradient penalty to discriminator loss. #Basically gradient penalty prevents the discriminator's gradients from exploding or going to high
+            # By enforcing the Lipschitz constraint.
             gradient_penalty = self.gradient_penalty(real_samples, scaled_transformed_samples)
             d_loss += self.lambda_penalty * gradient_penalty
 
-        # Compute gradients for discriminator
+        # Compute gradients for the discriminator, there were some empty gradients observable during development. This threw some errors.
+        # This code is meant to sift through those and grab the ones with gradients to kickstart training.
         d_gradients = tape.gradient(d_loss, self.discriminator.trainable_variables)
         d_gradients = [(grad, var) for grad, var in zip(d_gradients, self.discriminator.trainable_variables) if grad is not None]
 
@@ -132,16 +137,12 @@ class WGANLP(tf.keras.Model):
 #As inputs to a Wiener filter, this is not a problem due to the energy of the PSD distribution being normalised to 1.
 
 def transform_fn(samples, noisemix,observations):
-    # Apply your arbitrary mathematical transform to generated samples here
     Numpy_generated_sample = samples.numpy()
-    #print(np.shape(Numpy_generated_sample))
     Numpy_noisemix_sample = noisemix.numpy()
     mean_vector = observations.numpy()
     Tensor_size = np.shape(Numpy_generated_sample)[0]
     Estimated_noise_PSD = np.zeros((Tensor_size, 1024))
     for Tensor in range(0, Tensor_size):
-        
-        
         Generated_sample = Numpy_generated_sample[Tensor, :, :]
         Generated_sample = Generated_sample.reshape((1024, 9))
         Generated_sample = np.abs(Generated_sample)
@@ -158,21 +159,21 @@ def transform_fn(samples, noisemix,observations):
 generator = build_generator()
 discriminator = build_discriminator()
 
-# Create WGAN-LP instance
+# Create WGAN-GP instance
 wganlp = WGANLP(generator, discriminator, transform_fn)
 
-# Compile the WGAN-LP
+# Compile the WGAN-GP and re-initialize hyperparameters.
 wganlp.compile(
     g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
     d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
     lambda_penalty=10
 )
 
-
+# Load the full npy files
 real_samples = np.load('Noisy_Mixture_PSDs.npy')
 noise = np.load('Pure_Noise_PSDs.npy')
-
-text_file = open("Models-Setup/GAN-Setup/Noise_GMM_codebook.txt", "r")  #make sure this is at the same location as this file
+#Load the GMM derived codebook
+text_file = open("Models-Setup/GAN-Setup/Noise_GMM_codebook.txt", "r")  
 lines = text_file.readlines()
 text_file.close()
 Noise_codebook2 = np.zeros((1024,9))
@@ -185,11 +186,12 @@ for frequency_bin in range (0,len(lines)):
    Noise_codebook2[frequency_bin,component] = float(string_list[component])
 
 test = tf.convert_to_tensor(Noise_codebook2, dtype=tf.float32) 
-
+#set batch size if a larger mini-batch is desired.
 batch_size = 64
 num_batches = len(real_samples) // batch_size
 #num_batches = len(wow) // batch_size
-save_interval = 1  # Interval for saving the model
+save_interval = 1  # Interval for saving the model # Interval for saving the model. Change this if needed.
+#Increase iterations if discriminator needs to reach optimallity before training generator.
 discriminator_iterations = 5  # Number of times to train the discriminator per epoch
 
 current_epoch = 0
@@ -216,9 +218,11 @@ if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_p
 else:
     print("No saved generator and discriminator models found.")
 
+os.chdir(dname)
+
 for epoch in range(current_epoch,1500):
     print(f"Epoch {epoch + 1}/{1500}")
-
+    #This performs n discriminator/critic iterations
     for d_iter in range(discriminator_iterations):
         for batch in range(num_batches):
             start = batch * batch_size
@@ -231,7 +235,7 @@ for epoch in range(current_epoch,1500):
             real_batch = 0
             noise_batch = 0
             print('Epoch:' + str(epoch+1) +' '+ 'Iteration:' +str(d_iter+1),  end =' ')
-            print(losses)  # Print the losses for each batch
+            print(losses)
 
     # Train the generator
     for batch in range(num_batches):
@@ -242,7 +246,7 @@ for epoch in range(current_epoch,1500):
 
         losses = wganlp.train_generator_step(noise_batch,test,real_batch)
         print('Epoch:' + str(epoch+1),  end =' ')
-        print(losses)  # Print the losses for each batch
+        print(losses)
         
 
     if (epoch + 1) % save_interval == 0:
@@ -250,7 +254,7 @@ for epoch in range(current_epoch,1500):
         current_epoch = epoch + 1
         with open("Models/GAN-Models/current_epoch_noise2.txt", "w") as epoch_file:
             epoch_file.write(str(current_epoch))
-            
+        # Saves the models.            
         tf.saved_model.save(wganlp.generator, f"Models/GAN-Models/{model_filename}_generator")
         tf.saved_model.save(wganlp.discriminator, f"Models/GAN-Models/{model_filename}_discriminator")
         print("Models saved.")

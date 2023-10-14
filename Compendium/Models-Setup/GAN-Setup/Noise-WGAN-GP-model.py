@@ -8,14 +8,14 @@ dname = os.path.dirname(abspath)
 os.chdir(dname)
 
 
-# Generator model
+
 def build_generator():
     model = keras.Sequential()
     model.add(layers.Dense(1024, input_shape=(1024,)))
     model.add(layers.Dense(2048, activation='relu'))
     model.add(layers.Dense(4096, activation='relu'))
     model.add(layers.Dense(8192, activation='relu'))
-    model.add(layers.Dense(16384, activation='relu'))  # Adding an additional dense layer
+    model.add(layers.Dense(16384, activation='relu'))
     model.add(layers.Dense(1024 * 9))
     model.add(layers.Reshape((1024, 9)))
     return model
@@ -33,7 +33,7 @@ def build_discriminator():
     model.add(layers.Dense(1))
     return model
 
-# Define the WGAN-LP
+# Define the WGAN-GP
 class WGANLP(tf.keras.Model):
     def __init__(self, generator, discriminator, transform_fn):
         super(WGANLP, self).__init__()
@@ -93,7 +93,8 @@ class WGANLP(tf.keras.Model):
             # By enforcing the Lipschitz constraint.
             d_loss += self.lambda_penalty * gradient_penalty
 
-        # Compute gradients for discriminator
+        # Compute gradients for the discriminator, there were some empty gradients observable during development. This threw some errors.
+        # This code is meant to sift through those and grab the ones with gradients to kickstart training.
         d_gradients = tape.gradient(d_loss, self.discriminator.trainable_variables)
         d_gradients = [(grad, var) for grad, var in zip(d_gradients, self.discriminator.trainable_variables) if grad is not None]
 
@@ -150,14 +151,14 @@ def transform_fn(samples, noisemix):
 
     return transformed_samples
 
-# Create generator and discriminator models
+# Build generator and discriminator instances
 generator = build_generator()
 discriminator = build_discriminator()
 
-# Create WGAN-LP instance
+# Create WGAN-GP instance
 wganlp = WGANLP(generator, discriminator, transform_fn)
 
-# Compile the WGAN-LP
+# Compile the WGAN-GP and re-initialize hyperparameters.
 wganlp.compile(
     g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
     d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
@@ -196,7 +197,6 @@ if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_p
             g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             lambda_penalty=10)
-        #wganlp.save(f"trained_wganlp_model_epoch_Dense_20")
         if os.path.exists("Models/GAN-Models/current_epoch_noise.txt"):
             with open("Models/GAN-Models/current_epoch_noise.txt", "r") as epoch_file:
                 current_epoch = int(epoch_file.read())
@@ -208,7 +208,7 @@ os.chdir(dname)
 
 for epoch in range(current_epoch,1500):
     print(f"Epoch {epoch + 1}/{1500}")
-
+    #This performs n discriminator/critic iterations
     for d_iter in range(discriminator_iterations):
         for batch in range(num_batches):
             start = batch * batch_size
@@ -221,7 +221,7 @@ for epoch in range(current_epoch,1500):
             real_batch = 0
             noise_batch = 0
             print('Epoch:' + str(epoch+1) +' '+ 'Iteration:' +str(d_iter+1),  end =' ')
-            print(losses)  # Print the losses for each batch
+            print(losses)
 
     # Train the generator
     for batch in range(num_batches):
@@ -231,7 +231,7 @@ for epoch in range(current_epoch,1500):
 
         losses = wganlp.train_generator_step(noise_batch)
         print('Epoch:' + str(epoch+1),  end =' ')
-        print(losses)  # Print the losses for each batch
+        print(losses) 
         
 
     if (epoch + 1) % save_interval == 0:
@@ -241,7 +241,7 @@ for epoch in range(current_epoch,1500):
         with open("Models/GAN-Models/current_epoch_noise.txt", "w") as epoch_file:
             epoch_file.write(str(current_epoch))
             
-        # Save the generator and discriminator models
+        # Saves the models.
         tf.saved_model.save(wganlp.generator, f"Models/GAN-Models/{model_filename}_generator")
         tf.saved_model.save(wganlp.discriminator, f"Models/GAN-Models/{model_filename}_discriminator")
         print("Models saved.")

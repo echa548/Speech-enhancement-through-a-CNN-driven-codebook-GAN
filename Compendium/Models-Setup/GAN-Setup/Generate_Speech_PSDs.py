@@ -11,7 +11,9 @@ import random
 # dname = os.path.dirname(abspath)
 # os.chdir(dname)
 
-
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 #This file will make the training data for the GANs that is trained to generate speech.
 
@@ -48,7 +50,7 @@ for target_db in range (0,len(targets)):
  
  Path_of_noisy_mixture = Folder_path_to_access+str(targets[target_db])+'dB'+'/'
  Path_of_real_speech_files = Folder_path_to_access+ 'clean/'
- real_speech_files = os.listdir(Folder_path_to_access+'/clean')
+ real_speech_files = os.listdir(Folder_path_to_access+'clean')
  Noisy_mixture_files = os.listdir(Folder_path_to_access+str(targets[target_db])+'dB')
  
  for No_of_data in range (0,len(Noisy_mixture_files)):
@@ -103,7 +105,7 @@ for data_point in range (0, len(Mixture_list)):
  Mixture_PSD[data_point,:] = Mixture_list.pop()
  Clean_PSD[data_point,:] = Clean_list.pop()
  
-np.save('Compendium/Models-Setup/Speech_with_noise_PSDs',Mixture_PSD)
+np.save('Models-Setup/GAN-Setup/Speech_with_noise_PSDs',Mixture_PSD)
 
 
-np.save('Compendium/Models-Setup/Clean_paired_speech_PSDs',Clean_PSD)
+np.save('Models-Setup/GAN-Setup/Clean_paired_speech_PSDs',Clean_PSD)

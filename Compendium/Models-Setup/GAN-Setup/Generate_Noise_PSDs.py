@@ -12,6 +12,9 @@ import random
 # os.chdir(dname)
 
 #This file will make the necessary training data for the Noise GAN.
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 
 N_fft = 1024

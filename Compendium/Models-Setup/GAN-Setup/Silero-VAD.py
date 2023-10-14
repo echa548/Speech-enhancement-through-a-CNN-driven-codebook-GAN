@@ -5,14 +5,12 @@ from scipy.io import wavfile
 import soundfile as sf
 import torch
 torch.set_num_threads(1)
-# abspath = os.path.abspath(__file__)
-# dname = os.path.dirname(abspath)
-#os.chdir(dname)
-
 
 #ATTENTION!
 #This file applies the VAD_SNR definition.
-
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
 
 model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad', model='silero_vad')

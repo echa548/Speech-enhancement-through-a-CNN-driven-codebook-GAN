@@ -8,8 +8,11 @@ from keras.models import load_model
 from keras.models import Sequential
 import silence_tensorflow.auto
 
-
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 os.chdir('../..')
+
 os.makedirs('Others/Creating-Figures/Training_data_evaluation',exist_ok=True)
 os.makedirs('Others/Creating-Figures/Real_spectrum_stem_evaluation',exist_ok=True)
 os.makedirs('Others/Creating-Figures/GAN_spectrum_stem_evaluation',exist_ok=True)
