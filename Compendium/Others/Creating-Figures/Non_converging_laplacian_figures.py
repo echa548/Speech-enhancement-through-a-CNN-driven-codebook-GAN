@@ -1,11 +1,6 @@
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-import math
 import numpy as np
 import os
-import scipy.stats as ss
-import seaborn as sns
-import pandas as pd
 from scipy.stats import expon
 from scipy.optimize import curve_fit
 os.chdir('../..')

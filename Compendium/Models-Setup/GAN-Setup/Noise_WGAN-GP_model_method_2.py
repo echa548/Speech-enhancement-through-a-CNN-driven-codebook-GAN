@@ -3,8 +3,6 @@ import numpy as np
 from tensorflow import keras
 from keras import layers
 import os
-import re
-import random
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)

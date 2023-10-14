@@ -1,11 +1,7 @@
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-import math
 import numpy as np
 import os
 import scipy.stats as ss
-import seaborn as sns
-import pandas as pd
 os.chdir('../..')
 
 #ATTENTION!!!!! If switching from ploting the densities of noise to speech, please copy paste the folder which contains the previously generated
