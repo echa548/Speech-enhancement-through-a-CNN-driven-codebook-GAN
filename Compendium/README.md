@@ -76,7 +76,7 @@ The packages that we used:
 
 ### Gaussian Mixture Modelling
 - Go to [GMM-Setup](Models-Setup/GMM-Setup)
-- After the initial dataset made by create-dataset.ipynb is created, run the VAD_Merge. Important!! Run this using an IDE. Comments are left in the files regarding directories and functionality!!
+- After the initial dataset made by create-dataset.ipynb is created, run the VAD_Merge. Important!! Run this using an IDE (Visual studio code). Comments are left in the files regarding directories and functionality!!
 - After the step above, derive the codebooks by running the GMM_Codebook Python script.
 
 ### Perform Evaluation
