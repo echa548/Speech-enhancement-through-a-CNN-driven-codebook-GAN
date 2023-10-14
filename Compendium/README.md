@@ -68,10 +68,16 @@ The packages that we used:
 - Run from Step 1 to Step 6 to save model (Step 7 loads the model and predicts the SNR levels for all wav files in `path_test_dataset = "../../Dataset/predict_dataset/"`)
 
 ### Generating GAN Speech Enhancement Model
-- Go to [GAN-Setup](Models-Setup/GAN-Setup)
-- After the steps outlines in Creating Dataset, run the Silero-VAD file to apply VAD SNR. This will generate a new audio files in Database/VAD_SNR
-- To prepare the data for the WGAN go to [GAN-Setup](Models-Setup/GAN-Setup) and run both Generate_Noise_PSDs and Generate_Speech_PSDs
-- After data creation, run the Noise-WGAN-GP-model and Noise-WGAN-GP-models.
+- Go to [GAN-Setup](Models-Setup/GAN-Setup). Important!! Run this using an IDE. Comments are left in the files regarding directories and functionality!!
+- After the steps outlines in Creating Dataset, run the Silero-VAD file to apply VAD SNR. This will generate a new audio files in Dataset/VAD_SNR.
+- After the new audio files have been created in (Dataset/VAD_SNR), please copy paste the folder containing clean speech from (Dataset/dataset) to (Dataset/VAD_SNR)
+- To prepare the data for the WGAN go to [GAN-Setup](Models-Setup/GAN-Setup) and run both Generate_Noise_PSDs and Generate_Speech_PSDs. This will create npy files with data. Adjust segments desired.
+- After data creation, run the Noise-WGAN-GP-model and Noise-WGAN-GP-models. Models are saved in (Models/GAN-Models). Modify save intervals/batch size as required.
+
+###Gaussian Mixture Modelling
+- Go to [GMM-Setup](Models-Setup/GMM-Setup)
+- After the initial dataset made by create-dataset.ipynb is created, run the VAD_Merge. Important!! Run this using an IDE. Comments are left in the files regarding directories and functionality!!
+- After the step above, derive the codebooks by running the GMM_Codebook python script.
 
 ### Perform Evaluation
 - Go to [Evaluation](Evaluation)
