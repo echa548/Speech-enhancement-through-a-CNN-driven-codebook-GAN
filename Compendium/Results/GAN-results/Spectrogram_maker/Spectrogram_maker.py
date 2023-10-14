@@ -19,7 +19,8 @@ os.chdir(dname)
 
 directories = os.listdir('Audio')
 
-#This file was used to generate the spectrograms provided in the results.
+#This file was used to generate the spectrograms provided in the results. Put enhanced WAV files in audio folder
+#output spectrograms will be in Spectrograms folder
 
 def Generate_Mono_Mag_Phase_Spectrogram (data,fs,dir):
      f, t, Lxx = signal.spectrogram(x = data, fs = fs, window = 'hann',nperseg = 512,noverlap = 384,nfft = 1024,detrend='constant', return_onesided=True, scaling='density', axis=-1, mode='magnitude')
