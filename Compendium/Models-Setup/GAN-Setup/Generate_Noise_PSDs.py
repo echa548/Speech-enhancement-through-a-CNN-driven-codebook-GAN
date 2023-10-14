@@ -96,6 +96,6 @@ for data_point in range (0, len(Mixture_list)):
  Mixture_PSD[data_point,:] = Mixture_list.pop()
  Clean_PSD[data_point,:] = Clean_list.pop()
  
-np.save('Compendium/Models-Setup/GAN-Setup/Noisy_Mixture_PSDs',Mixture_PSD)
+np.save('Models-Setup/GAN-Setup/Noisy_Mixture_PSDs',Mixture_PSD)
 
-np.save('Compendium/Models-Setup/GAN-Setup/Pure_Noise_PSDs',Clean_PSD)
+np.save('Models-Setup/GAN-Setup/Pure_Noise_PSDs',Clean_PSD)
