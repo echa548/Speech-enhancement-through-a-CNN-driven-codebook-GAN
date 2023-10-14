@@ -180,7 +180,7 @@ num_batches = len(real_samples) // batch_size
 save_interval = 1  # Interval for saving the model. Change this if needed.
 #Increase iterations if discriminator needs to reach optimallity before training generator.
 discriminator_iterations = 5  # Number of times to train the discriminator per epoch
-os.chdir('..')
+os.chdir('../..')
 current_epoch = 0
 generator_model_path = "Models/GAN-Models/Full_Curriculum_1000_generator"
 discriminator_model_path = "Models/GAN-Models/Full_Curriculum_1000_discriminator"
@@ -235,7 +235,7 @@ for epoch in range(current_epoch,1500):
         
 
     if (epoch + 1) % save_interval == 0:
-        os.chdir('..')
+        os.chdir('../..')
         model_filename = f"Full_Curriculum_{epoch + 1}"
         current_epoch = epoch + 1
         with open("Models/GAN-Models/current_epoch_noise.txt", "w") as epoch_file:

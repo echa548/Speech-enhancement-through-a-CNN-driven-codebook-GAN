@@ -15,7 +15,7 @@ def build_generator():
     model.add(layers.Dense(2048, activation='relu'))
     model.add(layers.Dense(4096, activation='relu'))
     model.add(layers.Dense(8192, activation='relu'))
-    model.add(layers.Dense(16384, activation='relu'))  # Adding an additional dense layer
+    model.add(layers.Dense(16384, activation='relu')) 
     model.add(layers.Dense(1024 * 6))
     model.add(layers.Reshape((1024, 6)))
     return model
@@ -33,7 +33,7 @@ def build_discriminator():
     model.add(layers.Dense(1))
     return model
 
-# Define the WGAN-LP
+# Define the WGAN-GP
 class WGANLP(tf.keras.Model):
     def __init__(self, generator, discriminator, transform_fn):
         super(WGANLP, self).__init__()
@@ -70,14 +70,16 @@ class WGANLP(tf.keras.Model):
            
             generated_samples = self.generator(noise)
 
-            # Transform the generated samples
+            # Transform the generated samples.
+            # This scales the transformed output to have the same energy as that of the paired real counterpart.
+            # Basically, what this does is that it makes the generator focus on getting the right 'shape' of the PSD
+            # with no regard to the undershooting issue.
             transformed_samples = self.transform_fn(generated_samples, noise)
             sum_real_samples = tf.reduce_sum(real_samples, axis=-1, keepdims=True)
             sum_transformed_samples = tf.reduce_sum(transformed_samples, axis=-1, keepdims=True)
-            normalized_real_samples = real_samples / (sum_real_samples + 1e-20)  # Adding a small value to avoid division by zero
-            normalized_transformed_samples = transformed_samples / (sum_transformed_samples + 1e-20)  # Adding a small value to avoid division by zero
-            # row_index = 0
-            # print("Sum of row", row_index, "for normalized_real_samples:", sum(normalized_real_samples[row_index].numpy()))
+            normalized_real_samples = real_samples / (sum_real_samples + 1e-20)
+            normalized_transformed_samples = transformed_samples / (sum_transformed_samples + 1e-20)  
+
 
             # Train the discriminator
             d_predictions_real = self.discriminator(normalized_real_samples)
@@ -89,10 +91,12 @@ class WGANLP(tf.keras.Model):
             # Compute the gradient penalty
             gradient_penalty = self.gradient_penalty(normalized_real_samples, normalized_transformed_samples)
 
-            # Add gradient penalty to discriminator loss
+            # Add gradient penalty to discriminator loss. #Basically gradient penalty prevents the discriminator's gradients from exploding or going to high
+            # By enforcing the Lipschitz constraint.
             d_loss += self.lambda_penalty * gradient_penalty
 
-        # Compute gradients for discriminator
+        # Compute gradients for the discriminator, there were some empty gradients observable during development. This threw some errors.
+        # This code is meant to sift through those and grab the ones with gradients to kickstart training.
         d_gradients = tape.gradient(d_loss, self.discriminator.trainable_variables)
         d_gradients = [(grad, var) for grad, var in zip(d_gradients, self.discriminator.trainable_variables) if grad is not None]
 
@@ -154,14 +158,14 @@ def transform_fn(samples, noisemix):
 
     return transformed_samples
 
-# Create generator and discriminator models
+# Build generator and discriminator instances
 generator = build_generator()
 discriminator = build_discriminator()
 
-# Create WGAN-LP instance
+# Create WGAN-GP instance
 wganlp = WGANLP(generator, discriminator, transform_fn)
 
-# Compile the WGAN-LP
+# Compile the WGAN-GP and re-initialize hyperparameters.
 wganlp.compile(
     g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
     d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
@@ -182,7 +186,7 @@ num_batches = len(real_samples) // batch_size
 save_interval = 1  # Interval for saving the model. Change this if needed.
 #Increase iterations if discriminator needs to reach optimallity before training generator.
 discriminator_iterations = 5  # Number of times to train the discriminator per epoch
-os.chdir('..')
+os.chdir('../..')
 current_epoch = 0
 #Change the names to the existing saved models. If need to train from scratch then just put whatever u want in the paths
 #below.
@@ -201,7 +205,6 @@ if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_p
             g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             lambda_penalty=10)
-        #wganlp.save(f"trained_wganlp_model_epoch_Dense_20")
         if os.path.exists("Models/GAN-Models/current_epoch_speech.txt"):
             with open("Models/GAN-Models/current_epoch_speech.txt", "r") as epoch_file:
                 current_epoch = int(epoch_file.read())
@@ -213,7 +216,7 @@ os.chdir(dname)
 
 for epoch in range(current_epoch,1500):
     print(f"Epoch {epoch + 1}/{1500}")
-
+    #This performs n discriminator/critic iterations
     for d_iter in range(discriminator_iterations):
         for batch in range(num_batches):
             start = batch * batch_size
@@ -240,7 +243,7 @@ for epoch in range(current_epoch,1500):
         
 
     if (epoch + 1) % save_interval == 0:
-        os.chdir('..')
+        os.chdir('../..')
         model_filename = f"Full_Curriculum_Speech_{epoch + 1}"
         current_epoch = epoch + 1
         with open("Models/GAN-Models/current_epoch_speech.txt", "w") as epoch_file:
