@@ -130,7 +130,9 @@ class WGANLP(tf.keras.Model):
         # Save only the generator model
         self.generator.save(filepath, overwrite=overwrite, save_format=save_format, options=options)
 
-# Define the arbitrary mathematical transform function
+#This transform was the one suggested in the report. This generated similar PSD distributions but required high boosting to work properly.
+#As inputs to a Wiener filter, this is not a problem due to the energy of the PSD distribution being normalised to 1.
+
 def transform_fn(samples, noisemix,observations):
     # Apply your arbitrary mathematical transform to generated samples here
     Numpy_generated_sample = samples.numpy()
@@ -152,7 +154,6 @@ def transform_fn(samples, noisemix,observations):
         for Freq_bin in range(0, 1024):
             Estimated_noise_PSD[Tensor, Freq_bin] = np.sum(Projection[Freq_bin, :])
     transformed_samples = tf.cast(Estimated_noise_PSD, tf.float32)
-
     return transformed_samples
 
 # Create generator and discriminator models
@@ -170,10 +171,10 @@ wganlp.compile(
 )
 
 
-real_samples = np.load('Clean_PSD2.npy')
-noise = np.load('Mixture_PSD2.npy')
+real_samples = np.load('Noisy_Mixture_PSDs.npy')
+noise = np.load('Pure_Noise_PSDs.npy')
 
-text_file = open("Noise_list.txt", "r")  #make sure this is at the same location as this file
+text_file = open("Models-Setup/GAN-Setup/Noise_GMM_codebook.txt", "r")  #make sure this is at the same location as this file
 lines = text_file.readlines()
 text_file.close()
 Noise_codebook2 = np.zeros((1024,9))
@@ -194,8 +195,8 @@ save_interval = 1  # Interval for saving the model
 discriminator_iterations = 5  # Number of times to train the discriminator per epoch
 
 current_epoch = 0
-generator_model_path = "SKALAR_True_distrib_1_generator"
-discriminator_model_path = "SKALAR_True_distrib_1_discriminator"
+generator_model_path = "Models/GAN-Models/Full_Curriculum_Method2_1000_generator"
+discriminator_model_path = "Models/GAN-Models/Full_Curriculum_Method2_1000_discriminator"
 
 if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_path):
     saved_generator = tf.saved_model.load(generator_model_path)
@@ -209,9 +210,9 @@ if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_p
             g_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             d_optimizer=keras.optimizers.RMSprop(learning_rate=0.00005),
             lambda_penalty=10)
-        #wganlp.save(f"trained_wganlp_model_epoch_Dense_20")
-        if os.path.exists("current_epoch.txt"):
-            with open("current_epoch.txt", "r") as epoch_file:
+
+        if os.path.exists("Models/GAN-Models/current_epoch_noise2.txt"):
+            with open("Models/GAN-Models/current_epoch_noise2.txt", "r") as epoch_file:
                 current_epoch = int(epoch_file.read())
                 print(f"Resuming training from epoch {current_epoch}")
 else:
@@ -247,13 +248,11 @@ for epoch in range(current_epoch,1500):
         
 
     if (epoch + 1) % save_interval == 0:
-        model_filename = f"SKALAR_True_distrib_{epoch + 1}"
+        model_filename = f"Full_Curriculum_Method2{epoch + 1}"
         current_epoch = epoch + 1
-        with open("current_epoch.txt", "w") as epoch_file:
+        with open("Models/GAN-Models/current_epoch_noise2.txt", "w") as epoch_file:
             epoch_file.write(str(current_epoch))
             
-        # Save the generator and discriminator models using tf.saved_model.save
-        tf.saved_model.save(wganlp.generator, f"{model_filename}_generator")
-        tf.saved_model.save(wganlp.discriminator, f"{model_filename}_discriminator")
-        #wganlp.save(f"trained_wganlp_model_epoch_Dense_{epoch + 1}")
+        tf.saved_model.save(wganlp.generator, f"Models/GAN-Models/{model_filename}_generator")
+        tf.saved_model.save(wganlp.discriminator, f"Models/GAN-Models/{model_filename}_discriminator")
         print("Models saved.")
