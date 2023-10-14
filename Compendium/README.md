@@ -74,7 +74,7 @@ The packages that we used:
 - To prepare the data for the WGAN go to [GAN-Setup](Models-Setup/GAN-Setup) and run both Generate_Noise_PSDs and Generate_Speech_PSDs. This will create npy files with data. Adjust segments desired.
 - After data creation, run the Noise-WGAN-GP-model and Noise-WGAN-GP-models. Models are saved in (Models/GAN-Models). Modify save intervals/batch size as required.
 
-###Gaussian Mixture Modelling
+### Gaussian Mixture Modelling
 - Go to [GMM-Setup](Models-Setup/GMM-Setup)
 - After the initial dataset made by create-dataset.ipynb is created, run the VAD_Merge. Important!! Run this using an IDE. Comments are left in the files regarding directories and functionality!!
 - After the step above, derive the codebooks by running the GMM_Codebook Python script.
