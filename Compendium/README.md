@@ -97,7 +97,8 @@ GAN speech enhancement [results](Result/GAN-results).
 
 To generate the evaluation results and enhanced speech use [performing_evaluation.ipynb](Evaluation). Our results using the default settings of the CNN and GAN models outputted these [Results](Result/Overall-system-results).
 
-## Future Improvements
+## Future Considerations
+In light of these findings, future work in the field could focus on developing more accurate noise and speech spectra estimation techniques, possibly integrating the proposed model with other speech estimators to further improve intelligibility in low SNR mixtures. Additionally, efforts can be directed towards refining the classification model by including unintelligible speech and exploring predictive models for signal recovery at low SNR. Extending the training dataset with realistic and simulated noise data and harnessing improved computational power for longer training durations can significantly enhance the models' performance and capabilities, thereby contributing to the advancement of speech enhancement technology.
 
 ## Key Notes
 - We created this program using Windows 10
