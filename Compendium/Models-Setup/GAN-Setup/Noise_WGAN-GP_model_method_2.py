@@ -218,7 +218,7 @@ if os.path.exists(generator_model_path) and os.path.exists(discriminator_model_p
 else:
     print("No saved generator and discriminator models found.")
 
-os.chdir(dname)
+
 
 for epoch in range(current_epoch,1500):
     print(f"Epoch {epoch + 1}/{1500}")
@@ -250,7 +250,7 @@ for epoch in range(current_epoch,1500):
         
 
     if (epoch + 1) % save_interval == 0:
-        os.chdir('../..')
+
         model_filename = f"Full_Curriculum_Method2{epoch + 1}"
         current_epoch = epoch + 1
         with open("Models/GAN-Models/current_epoch_noise2.txt", "w") as epoch_file:
