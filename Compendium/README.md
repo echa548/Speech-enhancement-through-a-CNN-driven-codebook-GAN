@@ -20,6 +20,7 @@ The repository has the following structure
 - [Project-Compendium-Report](Project-Compendium-Report): Contains the report of the overall compendium
 - [Results](Results): CNN classification results, GAN results and the overall system evaluation results
 - [Seminar-Presentation](Seminar-Presentation): The presentation slides for the mid-year seminar
+- [Final-reports](Final-reports): Our final reports
 
 ## Getting Started
 1. Install Python version 3.8.0
